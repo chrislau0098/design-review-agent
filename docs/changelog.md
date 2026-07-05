@@ -5,6 +5,33 @@ Conventional Commits: `feat:` / `fix:` / `chore:` / `docs:` / `refactor:` / `tes
 
 ## [Unreleased]
 
+## [v0.1.0] · 2026-07-06 · M1 · 单维度跑通
+
+### Added
+- `backend/` Next.js 15 App Router scaffold(react 18 · TS strict · sin1 region)
+- Provider abstraction 层:`src/lib/model-provider.ts` `ModelProvider` interface + `VercelAISDKProvider` 实现(为 Mastra 迁移预留 · 业务代码 0 处直接 import model client)
+- `POST /api/review` SSE stream:`dimension_started` → `finding_delta` × N → `dimension_done` → `done` + sessionId
+- 6 dimension registry(`src/lib/dimensions.ts`) · visual-hierarchy 真中文 prompt 完成 · 其他 stub 到 M3a 补
+- Error taxonomy 8 code(`src/lib/errors.ts`)· invalid_dimensions / image_too_large / unsupported_image / auth_misconfigured / model_schema_error / upstream_rate_limited 有实际触发路径 · timeout / partial_failure 留桩
+- 图片双门约束:客户端 4.5MB base64 上限 + 服务端 413 拦截 + PNG magic bytes check(400 unsupported_image)
+- CORS preflight OPTIONS 200 + `Access-Control-Allow-Origin: *`
+- Doubao Seed 2.1 Turbo 集成:VercelAISDKProvider 内部直接 fetch ARK `response_format: json_schema`(SDK generateObject 兼容不到位,已 workaround)
+- Vercel deploy 到 chris-laus-projects/design-review-agent · production alias `design-review-agent.vercel.app`
+
+### Changed
+- `maxDuration` 800 → 300 · Vercel Team/Hobby plan 硬顶 300s · M3a 6 并行前需 Chris 决策升级 Pro
+- `vercel.json` 只保留 `regions: ["sin1"]` · `maxDuration` 走 App Router segment config(`export const maxDuration = 300`)
+
+### Verified
+- Local curl SSE stream:5/5 通过 · 首次返 4 条真实 findings(P1×1 + P2×3)· 内容质量高
+- Local wall time min/max/P50/P95 = 70s / 157s / 131s / 157s(Doubao thinking mode 默认开 · 生成 ~2700 reasoning tokens)
+- Doubao 2.1 Turbo `response_format: json_schema` strict mode 兼容度:PASS
+- 详细数据:`agent-log/2026-07-06-m1-probe.md`
+
+### Blocked (待 Chris 早上决策)
+- Vercel Team plan 默认开 Deployment Protection(SSO)· prod curl 302 → SSO 登录
+- Chris 手动关(https://vercel.com/chris-laus-projects/design-review-agent/settings/deployment-protection · 30 秒)· 关后 Planner 立刻补 sin1 → cn-beijing 真实 TTFB 探针
+
 ## [v0.0.2] · 2026-07-06 · API contract v0.2(codex review 修订)
 
 ### Changed
