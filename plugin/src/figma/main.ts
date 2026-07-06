@@ -4,6 +4,7 @@
 const UI_WIDTH = 400;
 const UI_HEIGHT = 720;
 const MAX_STRUCTURE_NODES = 150;
+const HISTORY_KEY = 'review_history_v1';
 
 figma.showUI(__html__, { width: UI_WIDTH, height: UI_HEIGHT, themeColors: true });
 
@@ -14,7 +15,7 @@ interface OutStructureNode {
   name: string;
   type: string;
   characters?: string;
-  bbox: [number, number, number, number]; // normalized to Frame · [x,y,w,h] in [0,1]
+  bbox: [number, number, number, number];
 }
 interface InternalStructureNode extends OutStructureNode {
   area: number;
@@ -47,7 +48,6 @@ function toBase64(bytes: Uint8Array): string {
   return btoa(binary);
 }
 
-// 递归提取 · 保留 semantic 有意义的节点(text / container / vector)· 过滤微碎片
 function extractStructure(root: SelectableNode): OutStructureNode[] {
   const frameBbox = root.absoluteBoundingBox;
   if (!frameBbox) return [];
@@ -68,11 +68,9 @@ function extractStructure(root: SelectableNode): OutStructureNode[] {
       const ny = (bbox.y - fy) / fh;
       const nw = bbox.width / fw;
       const nh = bbox.height / fh;
-
-      // 过滤:超出 Frame 太多的碎片 · 或极小的
       const area = nw * nh;
       const relevant =
-        area >= 0.001 && // 至少占 Frame 面积 0.1%
+        area >= 0.001 &&
         nx > -0.05 &&
         ny > -0.05 &&
         nx + nw < 1.05 &&
@@ -93,19 +91,14 @@ function extractStructure(root: SelectableNode): OutStructureNode[] {
         collected.push(entry);
       }
     }
-
-    // 只 recurse 可以有 children 的类型 · InstanceNode 也可以 walk 但会重复 component 内部
     if ('children' in node) {
       for (const child of node.children) walk(child);
     }
   };
 
   walk(root);
-
-  // 按面积从大到小 · 保住主容器 + 大元素 · 截断到上限
   collected.sort((a, b) => b.area - a.area);
   return collected.slice(0, MAX_STRUCTURE_NODES).map((n) => {
-    // 剥除 area(仅用于排序)· 传 backend 不需要
     const { area: _area, ...rest } = n;
     return rest;
   });
@@ -168,12 +161,10 @@ async function exportFullFrame() {
   }
 }
 
-// Fuzzy fallback:Doubao 返回的 nodeId 找不到时 · 按 characters 或 name 反查
 function findNodesByHint(hints: string[]): SceneNode[] {
   if (!hints || hints.length === 0) return [];
   const results: SceneNode[] = [];
   const seen = new Set<string>();
-
   const walk = (node: SceneNode) => {
     if (!('visible' in node) || node.visible === false) return;
     const searchable =
@@ -194,8 +185,11 @@ function findNodesByHint(hints: string[]): SceneNode[] {
   return results;
 }
 
+// Bug 1 修复:Inspect 会触发 selectionchange · 我们 sendSelectionState 会切覆盖 UI
+// 加时间锁 · Inspect 触发后 800ms 内的 selectionchange 忽略(足够 scrollAndZoomIntoView 稳定)
+let muteSelectionChangeUntil = 0;
+
 function inspectNodeIds(nodeIds: string[], fallbackHints: string[]) {
-  // 主路径:精确 id 匹配
   const nodes: SceneNode[] = [];
   for (const id of nodeIds) {
     const n = figma.getNodeById(id);
@@ -204,7 +198,6 @@ function inspectNodeIds(nodeIds: string[], fallbackHints: string[]) {
     }
   }
 
-  // Fallback:精确 id 全部失败 · 且有 hints · fuzzy 匹配
   let usedFallback = false;
   if (nodes.length === 0 && fallbackHints.length > 0) {
     const fuzzy = findNodesByHint(fallbackHints);
@@ -214,8 +207,10 @@ function inspectNodeIds(nodeIds: string[], fallbackHints: string[]) {
     }
   }
 
+  // Bug 1 · 关键修复:执行选中前 · mute selectionchange
+  muteSelectionChangeUntil = Date.now() + 800;
+
   if (nodes.length === 0) {
-    // 最终兜底:定位到 Frame
     const frame = getSelectedFrame();
     if (frame) {
       figma.currentPage.selection = [frame];
@@ -240,9 +235,32 @@ function inspectNodeIds(nodeIds: string[], fallbackHints: string[]) {
   });
 }
 
+async function loadHistory() {
+  const list = ((await figma.clientStorage.getAsync(HISTORY_KEY)) ?? []) as unknown;
+  figma.ui.postMessage({
+    type: 'HISTORY_LOADED',
+    entries: Array.isArray(list) ? list : [],
+  });
+}
+
+async function saveHistory(entries: unknown) {
+  try {
+    await figma.clientStorage.setAsync(HISTORY_KEY, entries);
+    figma.ui.postMessage({ type: 'HISTORY_SAVED' });
+  } catch (e) {
+    figma.ui.postMessage({
+      type: 'HISTORY_SAVE_FAILED',
+      message: e instanceof Error ? e.message : String(e),
+    });
+  }
+}
+
 void sendSelectionState();
+void loadHistory();
 
 figma.on('selectionchange', () => {
+  // Inspect race guard · 短时间内 skip
+  if (Date.now() < muteSelectionChangeUntil) return;
   void sendSelectionState();
 });
 
@@ -250,11 +268,24 @@ figma.ui.onmessage = (msg: {
   type: string;
   nodeIds?: string[];
   fallbackHints?: string[];
+  url?: string;
+  entries?: unknown;
 }) => {
   if (msg.type === 'REQUEST_EXPORT') {
     void exportFullFrame();
   } else if (msg.type === 'INSPECT_NODES') {
     inspectNodeIds(msg.nodeIds ?? [], msg.fallbackHints ?? []);
+  } else if (msg.type === 'OPEN_URL' && msg.url) {
+    // 白名单外的 URL 不打开(不用担心 XSS · Doubao 输出的 URL 我们不接受 · principle-links 白名单)
+    // 这里再做一次白名单校验
+    const allowed = /^https:\/\/(?:www\.)?(w3\.org|wikipedia\.org|nngroup\.com|m3\.material\.io|developer\.apple\.com|refactoringui\.com)\//;
+    if (allowed.test(msg.url)) {
+      figma.openExternal(msg.url);
+    }
+  } else if (msg.type === 'LOAD_HISTORY') {
+    void loadHistory();
+  } else if (msg.type === 'SAVE_HISTORY') {
+    void saveHistory(msg.entries);
   } else if (msg.type === 'CLOSE') {
     figma.closePlugin();
   }

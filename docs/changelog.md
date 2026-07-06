@@ -5,6 +5,39 @@ Conventional Commits: `feat:` / `fix:` / `chore:` / `docs:` / `refactor:` / `tes
 
 ## [Unreleased]
 
+## [v0.2.1] · 2026-07-07 · M2.5.1 · Bug fixes + impeccable UI
+
+### Fixed (Plugin)
+- **Bug 1**:Inspect 触发的 `selectionchange` 覆盖 findings 视图
+  - Sandbox 侧加 800ms race guard(`muteSelectionChangeUntil`)· Inspect 前设置 · 期内 selectionchange 忽略
+  - UI 侧 reviewing/done/viewing-history phase 直接 ignore `FRAME_SELECTED`(双保险)
+- **Bug 3**:principle 引用无可点链接
+  - 新 `principle-links.ts` · 白名单 pattern match(WCAG / Fitts / Nielsen / Material / iOS HIG / Gestalt / Refactoring UI)
+  - Sandbox 侧再校验 URL host · 只放行白名单域 · `figma.openExternal`
+
+### Added (Plugin)
+- **评审历史**(Bug 2 请求)
+  - `figma.clientStorage` 存 20 条 FIFO · header 加 Clock 按钮显示条数
+  - `HistorySheet` 从右滑入 · 列表点击进 `viewing-history` phase · 保留 Inspect 功能
+  - Chris 反馈的「历史生成的判断」
+
+### Changed (Plugin · impeccable UI 系统改造)
+- **OKLCH 色系**替代 HSL · 冷调 tint 中性色(chroma 0.005-0.02)· 无 `#fff`/`#000`
+- **Badge 减饱和**:P0/P1/P2 用 muted rose/honey/slate + dot 前缀 · 不再 fill 高饱和背景
+- **Card 减 elevation**:border 淡化(`border-border/60`)· 无 shadow · flat container · 内部 rounded muted bg 区分「建议」段(消除 side-stripe)
+- **Progress**:3px 细线 · foreground/70 subtle · 250ms ease-out-quart
+- **系统字体栈**:`-apple-system` 先 · Inter fallback · 无 display font
+- **Motion**:transition-colors 150ms ease-out-quart 标准化
+- **Findings 卡** 序号 `01 02 03` 单空格 monospace · 消除彩色圆形 badge
+- **Scrollbar**:8px thin · macOS 风
+
+### Impeccable 合规
+- No side-stripe borders greater than 1px
+- No gradient text · no glassmorphism decoration(HistorySheet backdrop-blur-2px 作 modal 覆盖层不算装饰)
+- No identical card grids · no nested cards
+- Colors OKLCH · low chroma at extremes
+- Familiar patterns · restrained accent(仅 primary action / current selection)
+
 ## [v0.2.0] · 2026-07-07 · M2.5 · CoT streaming + Inspect + finding metadata
 
 ### Added (Backend)

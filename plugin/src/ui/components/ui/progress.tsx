@@ -5,7 +5,7 @@ interface ProgressProps extends React.HTMLAttributes<HTMLDivElement> {
   value?: number; // 0-100
 }
 
-// 简化版 shadcn Progress · 不用 Radix(iframe 兼容 · 无 ResizeObserver 依赖)
+// impeccable · thinner · subtle · ease-out-quart 转场
 export const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
   ({ className, value = 0, ...props }, ref) => {
     const clamped = Math.max(0, Math.min(100, value));
@@ -16,11 +16,14 @@ export const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={clamped}
-        className={cn('relative h-1.5 w-full overflow-hidden rounded-full bg-secondary', className)}
+        className={cn(
+          'relative h-[3px] w-full overflow-hidden rounded-full bg-muted',
+          className
+        )}
         {...props}
       >
         <div
-          className="h-full bg-primary transition-all duration-500 ease-out"
+          className="h-full bg-foreground/70 transition-all duration-[250ms] ease-out-quart"
           style={{ width: `${clamped}%` }}
         />
       </div>

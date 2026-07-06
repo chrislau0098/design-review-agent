@@ -1,15 +1,14 @@
-import { Card } from '@/ui/components/ui/card';
-
 interface FrameCardProps {
   frameName: string;
   frameSize: { width: number; height: number };
   thumbnailUrl?: string;
 }
 
+// impeccable · 减 elevation · 无 border · 用 bg + gap 区分
 export function FrameCard({ frameName, frameSize, thumbnailUrl }: FrameCardProps) {
   return (
-    <Card className="p-2 flex gap-2 items-center">
-      <div className="w-14 h-14 bg-muted rounded flex-shrink-0 overflow-hidden border">
+    <div className="flex gap-3 items-center py-1">
+      <div className="w-12 h-12 rounded-md bg-muted flex-shrink-0 overflow-hidden">
         {thumbnailUrl ? (
           <img src={thumbnailUrl} alt={frameName} className="w-full h-full object-contain" />
         ) : (
@@ -19,13 +18,13 @@ export function FrameCard({ frameName, frameSize, thumbnailUrl }: FrameCardProps
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="text-xs font-medium truncate" title={frameName}>
+        <div className="text-[13px] font-medium truncate" title={frameName}>
           {frameName}
         </div>
-        <div className="text-[10px] text-muted-foreground">
+        <div className="text-[11px] text-muted-foreground tabular-nums">
           {Math.round(frameSize.width)} × {Math.round(frameSize.height)}
         </div>
       </div>
-    </Card>
+    </div>
   );
 }

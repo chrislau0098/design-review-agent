@@ -68,6 +68,24 @@ export interface ReviewRequest {
   frameStructure?: FrameStructureNode[];
 }
 
+// M2.5.1 · 历史记录条目 · 存 Figma clientStorage
+export interface HistoryEntry {
+  id: string;
+  frameName: string;
+  frameWidth: number;
+  frameHeight: number;
+  frameThumbnail?: string;
+  mode: Mode;
+  dimensionId: DimensionId;
+  findings: Finding[];
+  frameStructure?: FrameStructureNode[];
+  timestamp: number; // ms epoch
+  elapsedSec: number;
+}
+
+export const HISTORY_STORAGE_KEY = 'review_history_v1';
+export const HISTORY_MAX_ENTRIES = 20;
+
 export type SSEEvent =
   | { type: 'dimension_started'; dimension: string }
   | { type: 'stage_progress'; dimension: string; stage: StageId }
