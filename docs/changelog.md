@@ -28,9 +28,14 @@ Conventional Commits: `feat:` / `fix:` / `chore:` / `docs:` / `refactor:` / `tes
 - Doubao 2.1 Turbo `response_format: json_schema` strict mode 兼容度:PASS
 - 详细数据:`agent-log/2026-07-06-m1-probe.md`
 
-### Blocked (待 Chris 早上决策)
-- Vercel Team plan 默认开 Deployment Protection(SSO)· prod curl 302 → SSO 登录
-- Chris 手动关(https://vercel.com/chris-laus-projects/design-review-agent/settings/deployment-protection · 30 秒)· 关后 Planner 立刻补 sin1 → cn-beijing 真实 TTFB 探针
+### Verified (Prod · 07:12 SSO 关后)
+- Prod `POST /api/review` 端到端 SSE stream 干净 · 148.9s wall · 5 条真实 findings
+- **sin1 → cn-beijing TTFE P95 = 2,805 ms · < 5s exit criteria · 47% headroom**
+- 5 samples 极稳定(min 2.6s / max 2.8s / std < 100ms)· Vercel Fluid Compute cold start 一致
+
+### Fixed (Prod 部署链路)
+- Vercel 项目 `rootDirectory` 未设 · GitHub push 自动部署 build 空跑 · endpoint 404 · 修:PATCH `rootDirectory: "backend"` + `framework: "nextjs"` + 强制 redeploy
+- Vercel prod `ARK_API_KEY` env var 值曾误提交为空(昨晚 add 时空 Enter)· backend fetch ARK 挂 · 修:Chris 手动 Dashboard 补正 + redeploy
 
 ## [v0.0.2] · 2026-07-06 · API contract v0.2(codex review 修订)
 
