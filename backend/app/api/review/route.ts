@@ -9,6 +9,15 @@ export const runtime = 'nodejs';
 export const maxDuration = 300;
 
 const MAX_IMAGE_BASE64_LENGTH = 4_500_000;
+const MAX_FRAME_STRUCTURE_NODES = 200; // 服务端硬门 · 超过截断保 payload 不失控
+
+const frameStructureNodeSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  type: z.string(),
+  characters: z.string().optional(),
+  bbox: z.tuple([z.number(), z.number(), z.number(), z.number()]),
+});
 
 const requestSchema = z.object({
   imageBase64: z.string(),
@@ -16,6 +25,7 @@ const requestSchema = z.object({
   mode: z.enum(['light', 'deep']),
   sessionId: z.string().optional(),
   message: z.string().optional(),
+  frameStructure: z.array(frameStructureNodeSchema).optional(),
 });
 
 export async function OPTIONS() {
@@ -37,9 +47,8 @@ export async function POST(req: Request) {
     );
   }
 
-  const { imageBase64, dimensions, mode } = parsed.data;
+  const { imageBase64, dimensions, mode, frameStructure } = parsed.data;
 
-  // Validate dimensions enum before anything else.
   if (dimensions.length === 0 || !dimensions.every(isValidDimension)) {
     return jsonErrorResponse(
       new ApiError(
@@ -49,7 +58,6 @@ export async function POST(req: Request) {
     );
   }
 
-  // Image size hard gate (server-side door per api-contract.md).
   if (imageBase64.length > MAX_IMAGE_BASE64_LENGTH) {
     return jsonErrorResponse(
       new ApiError(
@@ -59,7 +67,6 @@ export async function POST(req: Request) {
     );
   }
 
-  // Basic PNG sanity check (base64 decode + magic bytes) → unsupported_image on failure.
   try {
     const buffer = Buffer.from(imageBase64, 'base64');
     if (buffer.length === 0) {
@@ -81,18 +88,27 @@ export async function POST(req: Request) {
     );
   }
 
-  // M1 simplification: only the first dimension is processed, single-dimension serial.
   const dimension = dimensions[0]!;
+
+  // Frame structure 截断 · 保 payload 不超上限
+  const trimmedFrameStructure = frameStructure
+    ? frameStructure.slice(0, MAX_FRAME_STRUCTURE_NODES)
+    : undefined;
+
   const provider = new VercelAISDKProvider();
 
-  const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
       let totalFindings = 0;
       let failed = false;
 
       try {
-        for await (const event of provider.reviewDimension(imageBase64, dimension, mode)) {
+        for await (const event of provider.reviewDimension({
+          imageBase64,
+          dimension,
+          mode,
+          frameStructure: trimmedFrameStructure,
+        })) {
           controller.enqueue(encodeSSE(event));
           if (event.type === 'finding_delta') totalFindings += 1;
           if (event.type === 'error' && !event.retryable) failed = true;
@@ -129,5 +145,4 @@ export async function POST(req: Request) {
   return new Response(stream, { headers: SSE_HEADERS });
 }
 
-// Re-exported for potential unit testing of markdown fallback parsing shape.
 export type { Finding };

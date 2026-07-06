@@ -5,6 +5,38 @@ Conventional Commits: `feat:` / `fix:` / `chore:` / `docs:` / `refactor:` / `tes
 
 ## [Unreleased]
 
+## [v0.2.0] · 2026-07-07 · M2.5 · CoT streaming + Inspect + finding metadata
+
+### Added (Backend)
+- ARK API 切 `stream: true` · 消费 `reasoning_content` + `content` 增量 chunks · 用于 stage transition 时机判定
+- `stage_progress` SSE event · 3 段(context → analyzing → synthesizing)· 首个 reasoning chunk 触发 analyzing · 首个 content chunk 触发 synthesizing
+- Request 加 `frameStructure`(可选 · v0.3)· backend 拼进 prompt 后半段 · 让 Doubao 引用 node id
+- Finding 加 `principle` / `category` / `nodeIds` 三个可选字段 · JSON schema strict mode required · 空值由前端 hide
+
+### Changed (Backend)
+- Prompt 重构 · 强制 finding 输出 principle / category / nodeIds · anti-hallucination:不确定就留空
+- Provider abstraction 内部改用 streaming path · 上层 `ModelProvider` 接口不变
+
+### Added (Plugin)
+- 完全重写 CoT 卡片 · shadcn Progress 分段进度条 + 3 段 collapsible · 完成折叠打勾 · 进行中展开子任务列表(参考 onBeacon Reviewing your design 布局)
+- FindingsList 加 `#N` 序号 badge + category badge + Inspect 按钮 + Source 引用原则区块
+- Inspect 按钮:精确 nodeId 匹配 → `figma.viewport.scrollAndZoomIntoView` · fallback fuzzy 匹配 characters/name · 兜底定位 Frame · toast 提示匹配结果
+- Frame 结构递归提取(`src/figma/main.ts`)· 保留 semantic 节点 · 面积降序 · 上限 150
+
+### Changed (Plugin)
+- 容器 340×560 → 400×720
+- Base font 12 → 13px · 卡片 padding p-3 → p-4
+- shadcn Progress 组件加入 · 简化版(不依赖 Radix Portal)
+
+### Verified (Prod)
+- End-to-end streaming test 3 阶段 emit 时机:
+  - `stage_progress: context` · +2.9s(dimension_started 后立即)
+  - `stage_progress: analyzing` · +6.7s(Doubao 首个 reasoning chunk)
+  - `stage_progress: synthesizing` · +180.4s(Doubao 首个 content chunk)
+  - findings 到齐 · +188.4s
+- 5 条 findings · category 5/5 · nodeIds 4/5 有引用 · principle 2/5(anti-hallucination 正常)
+- 引用的 nodeIds 100% 都是实际存在的 frame structure id · 无幻觉
+
 ## [v0.1.0] · 2026-07-06 · M1 · 单维度跑通
 
 ### Added

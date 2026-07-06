@@ -1,5 +1,5 @@
 // 与 backend/src/lib/types.ts 保持契约一致 · 手工同步 · 未来抽 shared 包
-// 契约来源:~/Code/design-review-agent/docs/api-contract.md v0.2
+// 契约来源:~/Code/design-review-agent/docs/api-contract.md v0.3
 
 export type Severity = 'P0' | 'P1' | 'P2';
 
@@ -7,6 +7,9 @@ export interface Finding {
   severity: Severity;
   description: string;
   suggestion: string;
+  principle?: string;
+  category?: string;
+  nodeIds?: string[];
 }
 
 export type Mode = 'light' | 'deep';
@@ -31,16 +34,43 @@ export const DIMENSION_LABELS: Record<DimensionId, string> = {
   copy: '文案',
 };
 
+// M2.5 · CoT stage
+export type StageId = 'context' | 'analyzing' | 'synthesizing';
+
+export const STAGE_LABELS: Record<StageId, string> = {
+  context: '分析上下文',
+  analyzing: '分析设计',
+  synthesizing: '综合评审',
+};
+
+export const STAGE_SUB_TASKS: Record<StageId, string[]> = {
+  context: ['打包设计稿', '提取节点结构', '理解产品语境'],
+  analyzing: ['建立视觉层级模型', '评估主次对比强度', '检查间距节奏', '定位强调元素'],
+  synthesizing: ['交叉引用设计原则', '分级严重度', '关联对应节点'],
+};
+
+export const STAGE_ORDER: StageId[] = ['context', 'analyzing', 'synthesizing'];
+
+export interface FrameStructureNode {
+  id: string;
+  name: string;
+  type: string;
+  characters?: string;
+  bbox: [number, number, number, number];
+}
+
 export interface ReviewRequest {
   imageBase64: string;
   dimensions: DimensionId[];
   mode: Mode;
   sessionId?: string;
   message?: string;
+  frameStructure?: FrameStructureNode[];
 }
 
 export type SSEEvent =
   | { type: 'dimension_started'; dimension: string }
+  | { type: 'stage_progress'; dimension: string; stage: StageId }
   | { type: 'finding_delta'; dimension: string; finding: Finding }
   | { type: 'dimension_done'; dimension: string; findingCount: number }
   | {

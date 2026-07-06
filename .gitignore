@@ -44,3 +44,7 @@ logs/
 # === TypeScript ===
 *.tsbuildinfo
 next-env.d.ts
+
+# === 手工打包产物 ===
+plugin.zip
+*.zip

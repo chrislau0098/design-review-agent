@@ -1,6 +1,6 @@
 # API Contract · Backend ↔ Plugin
 
-**版本**:v0.2(2026-07-06 · codex review 反馈修订)
+**版本**:v0.3(2026-07-07 · M2.5 · streaming + frameStructure + finding metadata)
 **Owner**:Planner-Claude
 **Breaking change 政策**:M3a 前锁死,M3a+ 加字段 non-breaking。
 
@@ -15,8 +15,23 @@
   mode: "light" | "deep";       // 轻量 Turbo / 深度 Pro
   sessionId?: string;           // M4+ 追问用
   message?: string;             // M4+ 用户追问文本
+  frameStructure?: FrameStructureNode[];  // v0.3 · Frame 节点结构 · 用于 Inspect 定位
+}
+
+interface FrameStructureNode {
+  id: string;                                // Figma node id (e.g. "1:23")
+  name: string;
+  type: string;                              // FRAME / TEXT / COMPONENT / RECTANGLE ...
+  characters?: string;                       // 仅 TEXT · 前 60 字
+  bbox: [number, number, number, number];    // [x_norm, y_norm, w_norm, h_norm] 相对 Frame [0,1]
 }
 ```
+
+**frameStructure 说明**(v0.3):
+- Plugin traverse Frame · 按 bbox 面积从大到小选 top 150 nodes
+- Backend 硬上限 200 · 超过丢尾
+- 传给 Doubao 作为「节点结构」上下文 · 模型引用相关 node id 到 finding.nodeIds
+- 缺省(向后兼容 v0.2 客户端)· backend 视为无结构上下文 · nodeIds 空数组
 
 **dimensions 枚举值**(6 维度):
 - `information-grouping` 信息分组
@@ -38,14 +53,25 @@
 // event type 1 · dimension 开始
 { type: "dimension_started", dimension: "visual-hierarchy" }
 
+// event type 1.5 · CoT stage 转换(v0.3 新增)· 前端驱动 3 段式进度显示
+// 触发条件:
+//   context: dimension_started 后立即 emit(打包 + 上下文准备完成)
+//   analyzing: 收到 Doubao 首个 reasoning_content chunk
+//   synthesizing: 收到 Doubao 首个 content chunk
+{ type: "stage_progress", dimension: "visual-hierarchy", stage: "context" | "analyzing" | "synthesizing" }
+
 // event type 2 · finding 增量(每个 finding 是完整对象,不是 partial patch)
+// v0.3 · Finding 新增 3 个可选字段
 {
   type: "finding_delta",
   dimension: "visual-hierarchy",
   finding: {
     severity: "P0" | "P1" | "P2",
     description: string,
-    suggestion: string
+    suggestion: string,
+    principle?: string,           // v0.3 · 引用的设计原则一句(不确定留空)
+    category?: string,            // v0.3 · 细分类(层级差异/主次对比/间距节奏 ...)
+    nodeIds?: string[]            // v0.3 · 引用的 frameStructure node id 数组
   }
 }
 
@@ -170,6 +196,13 @@ export interface SessionStore {
 这个 boundary 从 M1 就要写好,不是 M5 才加。
 
 ## Changelog
+
+- **v0.3**(2026-07-07 · M2.5)
+  - Request 加 `frameStructure` · Plugin 提取 Figma node tree(id/name/type/characters/bbox 归一化)
+  - Finding 加 `principle` / `category` / `nodeIds` 三可选字段 · 支持 Inspect 定位 + Source 展示
+  - SSE event 加 `stage_progress` · 3 段(context / analyzing / synthesizing)· 前端 CoT UI 驱动
+  - Backend 切 ARK `stream: true` 消费 reasoning_content + content chunks · 判定 stage transition 时机
+  - 硬上限:frameStructure 服务端截断到 200 · client 侧建议 150
 
 - **v0.2**(2026-07-06 · codex review 修订)
   - P0-1 `dimension` → `dimensions: string[]` 统一(即使单元素也数组)

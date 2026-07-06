@@ -1,39 +1,137 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/ui/components/ui/card';
-import { Skeleton } from '@/ui/components/ui/skeleton';
-import { Loader2, Sparkles } from 'lucide-react';
+import { useMemo } from 'react';
+import { Card, CardContent } from '@/ui/components/ui/card';
+import { Progress } from '@/ui/components/ui/progress';
+import { STAGE_LABELS, STAGE_ORDER, STAGE_SUB_TASKS, type StageId } from '@/lib/api-contract';
+import { Check, ChevronDown, ChevronRight, Loader2, Sparkles, Brain, Search, Zap } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface CoTCardProps {
-  dimensionLabel: string;
-  step: 'sending' | 'thinking' | 'generating';
+  currentStage: StageId | null;
+  stageStartTimes: Partial<Record<StageId, number>>;
+  now: number;
+  totalElapsedSec: number;
 }
 
-// M2 pseudo CoT · M3a 接 Doubao reasoning_content stream 时真 CoT 实况
-const STEP_TEXT: Record<CoTCardProps['step'], string> = {
-  sending: '打包设计稿 → 发送后端…',
-  thinking: 'AI 阅读设计稿 · 建立视觉层级模型…',
-  generating: '生成 findings · 分级严重度…',
+const STAGE_ICONS: Record<StageId, typeof Brain> = {
+  context: Brain,
+  analyzing: Search,
+  synthesizing: Zap,
 };
 
-export function CoTCard({ dimensionLabel, step }: CoTCardProps) {
+// 参考 onBeacon 三段式 · 每段可折叠 · 完成折叠 + 打勾 · 进行中展开
+export function CoTCard({ currentStage, stageStartTimes, now, totalElapsedSec }: CoTCardProps) {
+  const currentIdx = currentStage ? STAGE_ORDER.indexOf(currentStage) : -1;
+  const progressPct = useMemo(() => {
+    if (currentIdx < 0) return 0;
+    // 3 段等分 · 每段内部再按经验时长插值
+    const base = (currentIdx / STAGE_ORDER.length) * 100;
+    const stageStart = stageStartTimes[currentStage!];
+    if (!stageStart) return base;
+    const inStageSec = (now - stageStart) / 1000;
+    const stageEst: Record<StageId, number> = {
+      context: 6,
+      analyzing: 130,
+      synthesizing: 20,
+    };
+    const est = stageEst[currentStage!];
+    const inStageFrac = Math.min(1, inStageSec / est);
+    return base + (inStageFrac * 100) / STAGE_ORDER.length;
+  }, [currentIdx, currentStage, stageStartTimes, now]);
+
   return (
-    <Card className="border-dashed">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-1.5">
-          <Sparkles className="w-3.5 h-3.5" />
-          正在评审 · {dimensionLabel}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-2">
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-          {STEP_TEXT[step]}
+    <Card>
+      <CardContent className="p-4 space-y-3">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex items-center gap-1.5">
+            <Sparkles className="w-4 h-4 text-primary" />
+            <div className="text-sm font-semibold">Reviewing your design</div>
+          </div>
+          <div className="text-[11px] text-muted-foreground whitespace-nowrap">
+            {formatElapsed(totalElapsedSec)} · up to 3 min
+          </div>
         </div>
-        <div className="space-y-1.5 pt-1">
-          <Skeleton className="h-2.5 w-full" />
-          <Skeleton className="h-2.5 w-4/5" />
-          <Skeleton className="h-2.5 w-2/3" />
+
+        <Progress value={progressPct} />
+
+        <div className="space-y-2 pt-1">
+          {STAGE_ORDER.map((stage, idx) => {
+            const status: 'done' | 'active' | 'pending' =
+              idx < currentIdx ? 'done' : idx === currentIdx ? 'active' : 'pending';
+            const Icon = STAGE_ICONS[stage];
+            const startTime = stageStartTimes[stage];
+            const nextStartTime = idx < STAGE_ORDER.length - 1 ? stageStartTimes[STAGE_ORDER[idx + 1]!] : undefined;
+            const elapsedSec = startTime
+              ? Math.round(((nextStartTime ?? now) - startTime) / 1000)
+              : 0;
+            const expanded = status === 'active';
+
+            return (
+              <div
+                key={stage}
+                className={cn(
+                  'rounded-md border border-transparent',
+                  status === 'active' && 'border-border bg-muted/40'
+                )}
+              >
+                <div className="flex items-center gap-2 px-2 py-1.5">
+                  <div
+                    className={cn(
+                      'w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0',
+                      status === 'done' && 'bg-primary text-primary-foreground',
+                      status === 'active' && 'bg-primary/10 text-primary',
+                      status === 'pending' && 'bg-muted text-muted-foreground'
+                    )}
+                  >
+                    {status === 'done' ? (
+                      <Check className="w-3 h-3" />
+                    ) : status === 'active' ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      <Icon className="w-3 h-3" />
+                    )}
+                  </div>
+                  <div
+                    className={cn(
+                      'text-xs font-medium flex-1',
+                      status === 'pending' && 'text-muted-foreground'
+                    )}
+                  >
+                    {STAGE_LABELS[stage]}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground tabular-nums">
+                    {elapsedSec > 0 ? `${elapsedSec}s` : ''}
+                  </div>
+                  {expanded ? (
+                    <ChevronDown className="w-3 h-3 text-muted-foreground" />
+                  ) : (
+                    <ChevronRight className="w-3 h-3 text-muted-foreground" />
+                  )}
+                </div>
+                {expanded && (
+                  <div className="pl-8 pr-3 pb-2 space-y-1">
+                    {STAGE_SUB_TASKS[stage].map((task, i) => (
+                      <div
+                        key={i}
+                        className="text-[11px] text-muted-foreground flex items-center gap-1.5"
+                      >
+                        <div className="w-1 h-1 rounded-full bg-muted-foreground/40" />
+                        {task}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </CardContent>
     </Card>
   );
+}
+
+function formatElapsed(sec: number): string {
+  if (sec < 60) return `${sec}s`;
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${m}m ${s}s`;
 }
