@@ -1,0 +1,11 @@
+{
+  "name": "Base 设计评审 Agent",
+  "id": "base-design-review-agent",
+  "api": "1.0.0",
+  "main": "build/figma.js",
+  "ui": "build/index.html",
+  "editorType": ["figma"],
+  "networkAccess": {
+    "allowedDomains": ["https://design-review-agent.vercel.app"]
+  }
+}
