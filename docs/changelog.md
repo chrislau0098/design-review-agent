@@ -5,6 +5,22 @@ Conventional Commits: `feat:` / `fix:` / `chore:` / `docs:` / `refactor:` / `tes
 
 ## [Unreleased]
 
+## [v0.2.7] · 2026-07-07 · M2.5.7 · #FCFCFC 灰底 · 卡片去描边阴影 · 12px 圆角
+
+### Changed
+- **背景 → #FCFCFC**(`0.985 0 0` OKLCH · Chris 精准)· 更浅灰底 · 视觉更轻
+- **卡片纯白** · `--card: 1 0 0`(pure white · 与灰底最强对比 · 参考图 3 白卡效果)
+- **Muted 加深** 0.955 → 0.97 · 拉开与 background 的 hover 对比空间
+- **所有 Cards 去 border + 去 shadow**:FindingsList / CoTCard 移除 `border border-border/60` + `shadow-[0_1px_3px...]` · 只留 `bg-card` + `rounded-xl` · 纯粹靠白卡在灰底上分层
+- **所有 Radio 卡片(mode + dimension)一律 `bg-card` 白色**:selected / unselected / disabled 都白色 · disabled 只用 `opacity-60` 淡化(取代原 `bg-muted/40` 灰底)
+- **Hover 热区可见性**:`hover:bg-muted` → **`hover:bg-foreground/[0.06]`**(6% 透明黑) · 灰底上明显可见
+  - Header back/Clock button · Findings 定位 button · CoT accordion row · HistorySheet close/entry · Button ghost/outline variant
+- **圆角 8px → 12px** · `--radius: 0.75rem` · Button base `rounded-md` → `rounded-lg` · Cards `rounded-lg` → `rounded-xl`
+
+### Process
+- Chris 5 条 UI 精修派 Coder-plugin sub-agent(Sonnet)执行 · sub-agent flag 出 hover 一致性 scope 遗漏(定位/CoT accordion/HistorySheet 3 处 hover:bg-muted 未在 App.tsx scope 内)· Planner 手动补齐 · commit
+- 5 files sub-agent + 3 files Planner 补齐 · typecheck + build 双 PASS
+
 ## [v0.2.6] · 2026-07-07 · M2.5.6 · 灰底白卡 + 品牌蓝 #1456F0 · P0 黄 / P1 蓝
 
 ### Changed (色彩系统 · 参考 Chris 提供 dashboard 配图)

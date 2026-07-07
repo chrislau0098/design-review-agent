@@ -6,13 +6,13 @@
   :root {
     /* OKLCH · tinted neutrals with subtle cool undertone(冷调偏中性)
        Never pure #fff or #000 · low chroma at extremes to avoid AI-look. */
-    --background: 0.955 0.006 250;   /* 浅灰 · 与白卡对比 · 约 F1F1F3 */
+    --background: 0.985 0 0;   /* #FCFCFC · 极浅灰几近白 · Chris 精准 */
     --foreground: 0.22 0.015 250;
 
-    --card: 0.995 0.002 250;         /* 近白 */
+    --card: 1 0 0;   /* pure white · 明确对比灰底 · 参考图 3 白卡效果 */
     --card-foreground: 0.22 0.015 250;
 
-    --muted: 0.955 0.006 250;        /* 与 bg 同 · consistent */
+    --muted: 0.97 0 0;         /* muted 比 bg 略深 · 拉 hover 对比 */
     --muted-foreground: 0.55 0.015 250;
 
     --border: 0.92 0.008 250;        /* 稍加深 · 灰底上边框仍可见 */
@@ -38,7 +38,7 @@
 
     --destructive: 0.58 0.14 25;     /* 红 · 保留给 error alert · 与 severity 解耦 */
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;   /* 12px · Chris 定 */
   }
 
   * {

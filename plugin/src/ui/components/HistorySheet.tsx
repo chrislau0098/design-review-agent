@@ -44,7 +44,7 @@ export function HistorySheet({ open, entries, onClose, onSelect }: HistorySheetP
             {entries.length} 条
           </div>
           <button
-            className="w-6 h-6 rounded-md hover:bg-muted flex items-center justify-center transition-colors duration-150 ease-out-quart"
+            className="w-6 h-6 rounded-md hover:bg-foreground/[0.06] flex items-center justify-center transition-colors duration-150 ease-out-quart"
             onClick={onClose}
           >
             <X className="w-3.5 h-3.5" />
@@ -62,7 +62,7 @@ export function HistorySheet({ open, entries, onClose, onSelect }: HistorySheetP
             {entries.map((entry) => (
               <button
                 key={entry.id}
-                className="w-full text-left px-4 py-3 border-b border-border/40 hover:bg-muted/50 transition-colors duration-150 ease-out-quart flex gap-3 items-center"
+                className="w-full text-left px-4 py-3 border-b border-border/40 hover:bg-foreground/[0.05] transition-colors duration-150 ease-out-quart flex gap-3 items-center"
                 onClick={() => onSelect(entry)}
               >
                 <div className="w-10 h-10 rounded bg-muted flex-shrink-0 overflow-hidden">

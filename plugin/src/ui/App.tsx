@@ -345,7 +345,7 @@ export function App() {
         {state.phase === 'done' || state.phase === 'viewing-history' ? (
           <>
             <button
-              className="inline-flex items-center justify-center w-6 h-6 -ml-1 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors duration-150 ease-out-quart"
+              className="inline-flex items-center justify-center w-6 h-6 -ml-1 rounded-md hover:bg-foreground/[0.06] text-muted-foreground hover:text-foreground transition-colors duration-150 ease-out-quart"
               onClick={handleReset}
               title="返回"
             >
@@ -360,7 +360,7 @@ export function App() {
           </>
         )}
         <button
-          className="inline-flex items-center gap-1 h-6 px-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors duration-150 ease-out-quart"
+          className="inline-flex items-center gap-1 h-6 px-1.5 rounded-md hover:bg-foreground/[0.06] text-muted-foreground hover:text-foreground transition-colors duration-150 ease-out-quart"
           onClick={() => {
             postToFigma({ type: 'LOAD_HISTORY' });
             setHistoryOpen(true);
@@ -408,8 +408,8 @@ export function App() {
                         className={cn(
                           'text-left rounded-lg border-[1.5px] p-3 transition-all duration-150 ease-out-quart',
                           active
-                            ? 'border-primary bg-primary/[0.04]'
-                            : 'border-border/60 bg-card hover:border-border'
+                            ? 'border-primary bg-card'
+                            : 'border-border/40 bg-card hover:border-border/70'
                         )}
                         onClick={() => setMode(opt.id)}
                       >
@@ -446,9 +446,9 @@ export function App() {
                         disabled={disabled}
                         className={cn(
                           'text-left rounded-lg border-[1.5px] px-3 py-2.5 transition-all duration-150 ease-out-quart',
-                          active && 'border-primary bg-primary/[0.04]',
-                          !active && !disabled && 'border-border/60 bg-card hover:border-border',
-                          disabled && 'border-border/40 bg-muted/40 cursor-not-allowed opacity-70'
+                          active && 'border-primary bg-card',
+                          !active && !disabled && 'border-border/40 bg-card hover:border-border/70',
+                          disabled && 'border-border/40 bg-card cursor-not-allowed opacity-60'
                         )}
                         onClick={() => opt.enabled && setSelectedDimension(opt.id as DimensionId)}
                       >

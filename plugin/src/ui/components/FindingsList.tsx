@@ -51,7 +51,7 @@ export function FindingsList({
           return (
             <div
               key={i}
-              className="rounded-lg bg-card border border-border/60 shadow-[0_1px_3px_oklch(0_0_0/0.04),_0_1px_2px_oklch(0_0_0/0.02)] overflow-hidden transition-colors duration-150 ease-out-quart hover:border-border"
+              className="rounded-xl bg-card overflow-hidden transition-shadow duration-150 ease-out-quart"
             >
               {/* header row */}
               <div className="flex items-center gap-2 px-4 pt-3 pb-2.5">
@@ -65,7 +65,7 @@ export function FindingsList({
                 <div className="flex-1" />
                 {hasInspect && (
                   <button
-                    className="inline-flex items-center gap-1 h-6 px-2 rounded-md text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted transition-colors duration-150 ease-out-quart"
+                    className="inline-flex items-center gap-1 h-6 px-2 rounded-md text-[11px] text-muted-foreground hover:text-foreground hover:bg-foreground/[0.06] transition-colors duration-150 ease-out-quart"
                     onClick={() => onInspect(f)}
                   >
                     <Crosshair className="w-3 h-3" />
