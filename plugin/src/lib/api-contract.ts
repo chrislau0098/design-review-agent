@@ -15,6 +15,7 @@ export interface Finding {
 export type Mode = 'light' | 'deep';
 
 export const DIMENSION_IDS = [
+  'page-layout',
   'information-grouping',
   'visual-hierarchy',
   'color',
@@ -26,6 +27,7 @@ export const DIMENSION_IDS = [
 export type DimensionId = (typeof DIMENSION_IDS)[number];
 
 export const DIMENSION_LABELS: Record<DimensionId, string> = {
+  'page-layout': '页面布局',
   'information-grouping': '信息分组',
   'visual-hierarchy': '视觉层级',
   color: '配色',

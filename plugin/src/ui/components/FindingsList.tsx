@@ -76,7 +76,7 @@ export function FindingsList({
 
               {/* body · 现象和建议同一 x 位置(px-4)· 用 label 分层不用背景色 */}
               <div className="px-4 pb-4 pt-1 space-y-3.5">
-                <div className="text-[15px] leading-[1.65] tracking-[-0.005em]">
+                <div className="text-[14px] leading-[1.65] tracking-[-0.003em]">
                   {f.description}
                 </div>
 
@@ -84,7 +84,7 @@ export function FindingsList({
                   <div className="text-[10.5px] font-medium uppercase tracking-wider text-muted-foreground mb-1">
                     建议
                   </div>
-                  <div className="text-[15px] leading-[1.65] tracking-[-0.005em]">
+                  <div className="text-[14px] leading-[1.65] tracking-[-0.003em]">
                     {f.suggestion}
                   </div>
                 </div>

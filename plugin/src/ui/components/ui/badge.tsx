@@ -3,9 +3,9 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 // shadcn 一致标签 · 同结构 · 只文字色 / 边框色差异
-// P0/P1/P2 共享同一视觉重量:outline · 淡背景 · 有色文字
+// leading-normal + py-1 让高度更舒适(之前 py-0.5 leading-none 太窄)
 const badgeVariants = cva(
-  'inline-flex items-center rounded-md border px-2 py-0.5 text-[11px] font-medium tracking-tight leading-none transition-colors duration-150 ease-out-quart',
+  'inline-flex items-center rounded-md border px-2 py-1 text-[11.5px] font-medium tracking-tight leading-normal transition-colors duration-150 ease-out-quart',
   {
     variants: {
       variant: {

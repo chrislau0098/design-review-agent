@@ -1,31 +1,58 @@
 import type { DimensionId } from './types';
 
-// M2.5 · Prompt 强制 finding 输出 principle(设计原则)/ category(细分类)/ nodeIds(引用节点)
-// 不知道就留空 · 前端根据字段是否有值决定是否 render
-// Frame structure JSON 由 backend 在调用时拼进 prompt 后半段 · 见 vercel-ai-sdk-provider.ts
+// M2.5.3 · Prompt 强制 finding 输出 principle / category / nodeIds
+// principle 提示优先英文定律名 · 便于系统链接映射(Fitts / Gestalt / WCAG / Nielsen 等)
 
 const BASE_PROMPT_STRUCTURE = `严格输出 JSON · findings 数组 · 每条 finding 字段:
-- severity: "P0" 阻塞级(用户流程完全断) / "P1" 体验伤(可用但明显打折) / "P2" nice-to-have(优化建议)
+- severity: "P0" 阻塞级(用户流程完全断) / "P1" 重点关注(可用但明显打折) / "P2" 可优化(改良建议)
 - description: 一句话描述问题现象 · 客观陈述 · 不用「建议」「应该」开头
 - suggestion: 具体改法 · 可执行的 · 尽量给数值 / 样式 / 位置 / 顺序
-- principle: (可选)引用的一句设计原则 · 例如「主次对比强度需 ≥ 3:1」「Fitts 定律 · 高频按钮 ≥ 44px」「近邻远疏原则」· **不确定就留空字符串 ""** · 不要编造
-- category: (可选)细分类 · 从固定枚举选一个 · 例如「层级差异」「主次对比」「视觉焦点」「尺寸一致性」「间距节奏」「强调元素」· 不确定留空
+- principle: (可选)引用的一句设计原则 · **优先使用英文定律 keyword**(便于自动映射到官方文档):
+    Fitts's Law / Hick's Law / Miller's Law / Jakob's Law / Tesler's Law / Postel's Law / Occam's Razor / Pareto Principle / Parkinson's Law / Chunking / Serial Position / Peak-End Rule / Aesthetic-Usability / Von Restorff / Zeigarnik / Doherty Threshold / Law of Proximity / Law of Similarity / Common Region / Uniform Connectedness / Prägnanz / Gestalt / WCAG 2.1 / Nielsen 10 Heuristics / Material Design / iOS HIG / Refactoring UI
+    可用中文补充说明 · 但至少含一个上述 keyword。**不确定就留空字符串 ""** · 不要编造。
+- category: (可选)细分类 · 从固定枚举选一个 · 例如「层级差异」「主次对比」「视觉焦点」「尺寸一致性」「间距节奏」「强调元素」「信息分组」「分组边界」「空态一致性」· 不确定留空
 - nodeIds: (可选)引用的节点 id 数组 · 从「节点结构」JSON 里挑关联该 finding 的 node · 只填 id 字符串 · 找不到相关节点或不确定就返回空数组 [] · **禁止编造不存在的 id**
 
 严禁寒暄 · 严禁 markdown 代码块 · 直接输出 JSON 对象。`;
 
-const VISUAL_HIERARCHY_ROLE = `你是资深 B端 SaaS 设计师 · 专门审 UI 视觉层级。
-分析这张设计稿的视觉层级问题 · 覆盖:主次信息对比强度 · 视线动线合理性 · 强调元素滥用 · 大小间距一致性 · 视觉焦点数量 · 顶部/底部锚点强度。`;
-
 export const DIMENSION_PROMPTS: Record<DimensionId, string> = {
-  'visual-hierarchy': `${VISUAL_HIERARCHY_ROLE}\n\n${BASE_PROMPT_STRUCTURE}`,
+  // M2.5.3 · 融合视觉层级 + 信息分组 的合并维度 · Chris UI 展示为「页面布局」
+  'page-layout': `你是资深 B端 SaaS 设计师 · 专门审 UI 页面布局(融合视觉层级 + 信息分组)。
+分析这张设计稿的页面布局问题 · 覆盖两大维度:
+
+## 视觉层级
+- 主次信息对比强度(WCAG 2.1 建议正文对比度 ≥ 4.5:1 · 强调元素与背景 ≥ 3:1)
+- 视线动线合理性(自上而下 · 自左而右 · 大到小 · 关键信息优先)
+- 强调元素滥用(单页面视觉焦点 ≤ 1 个 · Von Restorff 隔离效应)
+- 大小间距一致性(Prägnanz 简洁性 · 尺寸/字号/间距按可插值 scale)
+- 视觉焦点数量与顶部/底部锚点强度
+
+## 信息分组
+- 同类信息聚合(Law of Proximity 近邻原则)
+- 分组边界清晰(Common Region 共同区域 · 间距 / 边框 / 背景 / 标题)
+- 卡片切分粒度(Chunking 分块 · Miller's Law 短期记忆 7±2)
+- 分组内容层级(卡片内主次是否清晰)
+- 空态 / loading / 满数据结构一致性
+- 反例(不相关信息混合 · 相关信息拆散 · 强分组)
+
+优先引用 English 定律 keyword 到 principle 字段。
+
+${BASE_PROMPT_STRUCTURE}`,
+
+  'visual-hierarchy': `你是资深 B端 SaaS 设计师 · 专门审 UI 视觉层级。
+分析这张设计稿的视觉层级问题 · 覆盖:主次信息对比强度(WCAG 4.5:1)· 视线动线合理性 · 强调元素滥用(Von Restorff)· 大小间距一致性(Prägnanz)· 视觉焦点数量 · 顶部/底部锚点强度。
+优先引用 English 定律 keyword。
+
+${BASE_PROMPT_STRUCTURE}`,
 
   'information-grouping': `你是资深 B端 SaaS 设计师 · 专门审 UI 信息分组合理性。
-分析这张设计稿的信息分组问题 · 覆盖:同类信息是否聚合(相关字段是否放在一起)· 分组边界清晰度(分组用什么区分:间距/边框/背景/标题)· 卡片切分粒度(卡片是否切太细或太粗)· 分组内容层级(卡片内主次是否清晰)· 空态与实态一致性(空 state / loading / 满数据视觉是否同结构)· 反例(是否存在不相关信息混在一起 / 相关信息被拆散)。
+分析这张设计稿的信息分组问题 · 覆盖:同类信息聚合(Law of Proximity)· 分组边界清晰度(Common Region)· 卡片切分粒度(Chunking · Miller's Law)· 分组内容层级 · 空态与实态一致性 · 反例。
+优先引用 English 定律 keyword。
+
 ${BASE_PROMPT_STRUCTURE}`,
 
   color: `你是资深 B端 SaaS 设计师 · 审 UI 配色。
-覆盖:主色使用节制 · 强调色滥用 · 语义色一致性 · 深浅层级 · 无障碍对比度。
+覆盖:主色使用节制 · 强调色滥用 · 语义色一致性 · 深浅层级 · 无障碍对比度(WCAG)。
 ${BASE_PROMPT_STRUCTURE}`,
 
   contrast: `你是资深 B端 SaaS 设计师 · 审 UI 对比度。

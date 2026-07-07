@@ -17,7 +17,7 @@ import {
   type Mode,
   type StageId,
 } from '@/lib/api-contract';
-import { AlertCircle, Clock, MousePointerClick, Sparkles, Zap, Check } from 'lucide-react';
+import { AlertCircle, Clock, MousePointerClick, Sparkles, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type FigmaMessage =
@@ -102,16 +102,16 @@ interface DimensionOption {
 }
 
 const DIMENSION_OPTIONS: DimensionOption[] = [
-  { id: 'visual-hierarchy', label: '视觉层级', enabled: true },
-  { id: 'information-grouping', label: '信息分组', enabled: true },
-  { id: 'design-token', label: 'Design Token', enabled: false, comingSoon: true },
-  { id: 'component-spec', label: '设计组件规范', enabled: false, comingSoon: true },
+  { id: 'page-layout', label: '页面布局', enabled: true },
+  { id: 'base-design-spec', label: 'Base 设计规范', enabled: false, comingSoon: true },
+  { id: 'i18n', label: '多语言适配', enabled: false, comingSoon: true },
+  { id: 'copy', label: '文案表达', enabled: false, comingSoon: true },
 ];
 
 export function App() {
   const [state, setState] = useState<AppState>({ phase: 'no-selection' });
   const [mode, setMode] = useState<Mode>('light');
-  const [selectedDimension, setSelectedDimension] = useState<DimensionId>('visual-hierarchy');
+  const [selectedDimension, setSelectedDimension] = useState<DimensionId>('page-layout');
   const [now, setNow] = useState<number>(Date.now());
   const [inspectToast, setInspectToast] = useState<string | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
@@ -367,7 +367,7 @@ export function App() {
                 thumbnailUrl={state.frame.thumbnail}
               />
 
-              {/* Mode radio cards */}
+              {/* Mode radio cards · 选中态用 border-foreground/85 + ring 阴影(无右上 dot 遮挡) */}
               <div className="space-y-2 pt-1">
                 <div className="text-[10.5px] uppercase tracking-wider text-muted-foreground px-0.5 font-medium">
                   评审深度
@@ -380,37 +380,32 @@ export function App() {
                       <button
                         key={opt.id}
                         className={cn(
-                          'text-left rounded-lg border p-3 transition-all duration-150 ease-out-quart relative',
+                          'text-left rounded-lg border p-3 transition-all duration-150 ease-out-quart',
                           active
                             ? 'border-foreground/85 bg-card shadow-[0_0_0_1px_oklch(var(--foreground)/0.15)]'
                             : 'border-border/60 bg-card hover:border-border'
                         )}
                         onClick={() => setMode(opt.id)}
                       >
-                        <div className="flex items-center justify-between gap-2 mb-1">
-                          <div className="flex items-center gap-1.5">
-                            <Icon className="w-3.5 h-3.5 text-foreground/75" />
+                        <div className="flex items-center justify-between gap-2 mb-1.5">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <Icon className="w-3.5 h-3.5 text-foreground/75 shrink-0" />
                             <div className="text-[13px] font-semibold">{opt.title}</div>
                           </div>
-                          <div className="text-[10.5px] text-muted-foreground tabular-nums">
+                          <div className="text-[10.5px] text-muted-foreground tabular-nums shrink-0">
                             {opt.eta}
                           </div>
                         </div>
                         <div className="text-[11.5px] text-muted-foreground leading-[1.5]">
                           {opt.description}
                         </div>
-                        {active && (
-                          <div className="absolute top-2 right-2 w-3.5 h-3.5 rounded-full bg-foreground flex items-center justify-center">
-                            <Check className="w-2.5 h-2.5 text-background" strokeWidth={3} />
-                          </div>
-                        )}
                       </button>
                     );
                   })}
                 </div>
               </div>
 
-              {/* Dimension radio buttons */}
+              {/* Dimension radio · 4 项 · 一个可选 + 三个 Coming Soon */}
               <div className="space-y-2 pt-1">
                 <div className="text-[10.5px] uppercase tracking-wider text-muted-foreground px-0.5 font-medium">
                   评审维度
@@ -424,7 +419,7 @@ export function App() {
                         key={opt.id}
                         disabled={disabled}
                         className={cn(
-                          'text-left rounded-lg border px-3 py-2.5 transition-all duration-150 ease-out-quart relative',
+                          'text-left rounded-lg border px-3 py-2.5 transition-all duration-150 ease-out-quart',
                           active && 'border-foreground/85 bg-card shadow-[0_0_0_1px_oklch(var(--foreground)/0.15)]',
                           !active && !disabled && 'border-border/60 bg-card hover:border-border',
                           disabled && 'border-border/40 bg-muted/40 cursor-not-allowed opacity-70'
@@ -434,14 +429,9 @@ export function App() {
                         <div className="text-[12.5px] font-medium">{opt.label}</div>
                         {opt.comingSoon && (
                           <div className="mt-1">
-                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0">
+                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0 leading-normal">
                               Coming Soon
                             </Badge>
-                          </div>
-                        )}
-                        {active && (
-                          <div className="absolute top-2 right-2 w-3 h-3 rounded-full bg-foreground flex items-center justify-center">
-                            <Check className="w-2 h-2 text-background" strokeWidth={3} />
                           </div>
                         )}
                       </button>

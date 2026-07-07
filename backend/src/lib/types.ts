@@ -11,6 +11,7 @@ export interface Finding {
 }
 
 export const DIMENSION_IDS = [
+  'page-layout',           // M2.5.3 · 融合视觉层级 + 信息分组
   'information-grouping',
   'visual-hierarchy',
   'color',

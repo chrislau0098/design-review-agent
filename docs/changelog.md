@@ -5,6 +5,24 @@ Conventional Commits: `feat:` / `fix:` / `chore:` / `docs:` / `refactor:` / `tes
 
 ## [Unreleased]
 
+## [v0.2.3] · 2026-07-07 · M2.5.3 · 页面布局 dimension + principle URL 命中
+
+### Added (Backend)
+- 新 `page-layout` dimension · 融合 visual-hierarchy + information-grouping 两大检查点(Chris 反馈信息分组和视觉层级应该一起评审)· 单次调用一次输出两维度 findings
+- Prompt 明确要求 principle 优先引用 English 定律 keyword(Fitts's Law / Gestalt / WCAG / Nielsen / Prägnanz / Von Restorff / Miller's Law 等 20+ 个)· 便于自动映射
+- Prod 实测:page-layout 5 条 findings · principle **5/5 全部命中 URL 白名单**
+
+### Fixed (Plugin)
+- Radio 卡片右上角 check 圆点遮盖 eta 文字(用户报「1-2 mi_」被截断)· 改用 border-foreground/85 + inset shadow 表示选中态 · 无 check 圆点
+- 首页维度选择 · 改用 Chris 定义的分类:
+  - ✅ 页面布局(唯一 enabled · backend page-layout)
+  - ⏳ Base 设计规范 / 多语言适配 / 文案表达(全部 Coming Soon)
+- Findings 正文字号 15px → **14px**(Chris 指定)
+- Badge padding · `py-0.5 leading-none` → `py-1 leading-normal`(Chris:高度太窄不舒服)
+
+### Added (Plugin)
+- 中文宽松兜底 pattern 到 principle-links:「层级」/「对比」/「间距」/「一致性」/「近邻远疏」等中文 keyword 也映射到 Refactoring UI / Nielsen / Laws of UX(即使 Doubao 输出中文表述 · 也保证 principle 至少有一个 fallback URL 可跳)
+
 ## [v0.2.2] · 2026-07-07 · M2.5.2 · UX 8 条修复
 
 ### Fixed

@@ -37,11 +37,18 @@ const PRINCIPLE_LINKS: PrincipleLink[] = [
   { patterns: [/Gestalt/i, /格式塔/i, /近邻远疏/i], url: 'https://lawsofux.com/law-of-proximity/', label: 'Gestalt · Laws of UX' },
 
   // ── 权威 spec(不在 Laws of UX 里)
-  { patterns: [/WCAG\s*2\.\d/i, /WCAG/i], url: 'https://www.w3.org/WAI/WCAG21/quickref/', label: 'W3C WCAG 2.1' },
-  { patterns: [/Nielsen/i, /(10|十)\s*(?:大)?(?:可用性|Usability)\s*(?:Heuristic|启发式)/i, /启发式评估/i], url: 'https://www.nngroup.com/articles/ten-usability-heuristics/', label: 'Nielsen 10 Heuristics' },
+  { patterns: [/WCAG\s*2\.\d/i, /WCAG/i, /(?:对比度|Contrast).*(?:比|Ratio|:)\s*\d/i, /无障碍/], url: 'https://www.w3.org/WAI/WCAG21/quickref/', label: 'W3C WCAG 2.1' },
+  { patterns: [/Nielsen/i, /(10|十)\s*(?:大)?(?:可用性|Usability)\s*(?:Heuristic|启发式)/i, /启发式评估/i, /可用性原则/], url: 'https://www.nngroup.com/articles/ten-usability-heuristics/', label: 'Nielsen 10 Heuristics' },
   { patterns: [/Material\s*Design/i, /Material\s*3/i, /MD3/i], url: 'https://m3.material.io/foundations', label: 'Material Design' },
   { patterns: [/iOS\s*HIG/i, /Apple\s*HIG/i, /Human\s*Interface\s*Guidelines/i, /HIG/i], url: 'https://developer.apple.com/design/human-interface-guidelines', label: 'Apple HIG' },
-  { patterns: [/Refactoring\s*UI/i], url: 'https://www.refactoringui.com/', label: 'Refactoring UI' },
+  { patterns: [/Refactoring\s*UI/i, /重构\s*UI/i], url: 'https://www.refactoringui.com/', label: 'Refactoring UI' },
+
+  // ── 中文宽松兜底 · 常见 keyword 落到 Refactoring UI(通用 UI 设计参考)
+  // 优先级低于以上 specific 定律 · 只有前面全部 miss 才走到这里
+  { patterns: [/(?:视觉)?(?:主次|层级)(?:对比|差异)/, /信息层级/, /视觉焦点/, /焦点强度/], url: 'https://www.refactoringui.com/previews/building-your-color-palette', label: 'Refactoring UI · Hierarchy' },
+  { patterns: [/间距(?:节奏|规律)/, /间距(?:系统|scale|梯度)/, /间距一致性/, /间距(?:阶梯|层级)/], url: 'https://www.refactoringui.com/previews/spacing-and-sizing', label: 'Refactoring UI · Spacing' },
+  { patterns: [/(?:视觉|样式)?一致性/, /(?:样式|规范)(?:统一|一致)/, /(?:组件|元素).*(?:一致|统一)/], url: 'https://www.nngroup.com/articles/consistency-and-standards/', label: 'Nielsen · Consistency' },
+  { patterns: [/(?:近邻|近接|接近)(?:原则|远疏)/, /(?:分组|聚合)(?:边界|清晰)/, /共同区域/], url: 'https://lawsofux.com/law-of-proximity/', label: 'Law of Proximity · Laws of UX' },
 ];
 
 export function resolvePrincipleLink(principle: string): { url: string; label: string } | null {
