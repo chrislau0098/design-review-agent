@@ -4,6 +4,7 @@
 const UI_WIDTH = 400;
 const UI_HEIGHT = 720;
 const MAX_STRUCTURE_NODES = 150;
+const MAX_STRUCTURE_DEPTH = 8; // M2.5.4 · 复杂 Component 无限递归 → payload 爆炸 · 深度硬顶
 const HISTORY_KEY = 'review_history_v1';
 
 figma.showUI(__html__, { width: UI_WIDTH, height: UI_HEIGHT, themeColors: true });
@@ -58,7 +59,8 @@ function extractStructure(root: SelectableNode): OutStructureNode[] {
 
   const collected: InternalStructureNode[] = [];
 
-  const walk = (node: SceneNode) => {
+  const walk = (node: SceneNode, depth: number) => {
+    if (depth > MAX_STRUCTURE_DEPTH) return;
     if (!('visible' in node) || node.visible === false) return;
     if ('opacity' in node && typeof node.opacity === 'number' && node.opacity === 0) return;
 
@@ -92,11 +94,11 @@ function extractStructure(root: SelectableNode): OutStructureNode[] {
       }
     }
     if ('children' in node) {
-      for (const child of node.children) walk(child);
+      for (const child of node.children) walk(child, depth + 1);
     }
   };
 
-  walk(root);
+  walk(root, 0);
   collected.sort((a, b) => b.area - a.area);
   return collected.slice(0, MAX_STRUCTURE_NODES).map((n) => {
     const { area: _area, ...rest } = n;

@@ -22,11 +22,15 @@ export function CoTCard({ currentStage, stageStartTimes, now, totalElapsedSec }:
     if (currentStage) setOpenStage(currentStage);
   }, [currentStage]);
 
+  // Asymptote 公式:段内用 1-exp(-t/est) 渐近但永不到 1(留 3% buffer)
+  // synthesizing 阶段可能跑 600s+ · progress 不会满死 · 加 shimmer 双保险表示 "活着"
   const progressPct = useMemo(() => {
     if (currentIdx < 0) return 0;
-    const base = (currentIdx / STAGE_ORDER.length) * 100;
+    const segmentSize = 100 / STAGE_ORDER.length;
+    const segmentStart = currentIdx * segmentSize;
+    const segmentEnd = (currentIdx + 1) * segmentSize - 3; // 每段留 3% buffer
     const stageStart = stageStartTimes[currentStage!];
-    if (!stageStart) return base;
+    if (!stageStart) return segmentStart;
     const inStageSec = (now - stageStart) / 1000;
     const stageEst: Record<StageId, number> = {
       context: 6,
@@ -34,8 +38,8 @@ export function CoTCard({ currentStage, stageStartTimes, now, totalElapsedSec }:
       synthesizing: 20,
     };
     const est = stageEst[currentStage!];
-    const inStageFrac = Math.min(1, inStageSec / est);
-    return base + (inStageFrac * 100) / STAGE_ORDER.length;
+    const inStageFrac = 1 - Math.exp(-inStageSec / est);
+    return segmentStart + inStageFrac * (segmentEnd - segmentStart);
   }, [currentIdx, currentStage, stageStartTimes, now]);
 
   return (
@@ -50,7 +54,7 @@ export function CoTCard({ currentStage, stageStartTimes, now, totalElapsedSec }:
         </div>
       </div>
 
-      <Progress value={progressPct} />
+      <Progress value={progressPct} animated />
 
       <div className="space-y-1 pt-0.5">
         {STAGE_ORDER.map((stage, idx) => {

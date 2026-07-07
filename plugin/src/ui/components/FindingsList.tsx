@@ -69,13 +69,13 @@ export function FindingsList({
                     onClick={() => onInspect(f)}
                   >
                     <Crosshair className="w-3 h-3" />
-                    Inspect
+                    定位
                   </button>
                 )}
               </div>
 
-              {/* body · 现象和建议同一 x 位置(px-4)· 用 label 分层不用背景色 */}
-              <div className="px-4 pb-4 pt-1 space-y-3.5">
+              {/* body · 现象和建议同一 x 位置(px-4)· 段落间距 space-y-5 更松 */}
+              <div className="px-4 pb-4 pt-2 space-y-5">
                 <div className="text-[14px] leading-[1.65] tracking-[-0.003em]">
                   {f.description}
                 </div>

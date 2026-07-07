@@ -64,6 +64,19 @@
     font-feature-settings: 'ss01' on, 'cv11' on;
   }
 
+  /* Progress bar shimmer · Progress "活着" 信号 · 段内 asymptote 不满死 */
+  @keyframes progress-shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(400%);
+    }
+  }
+  .animate-progress-shimmer {
+    animation: progress-shimmer 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
   /* subtle scrollbar · macOS style */
   ::-webkit-scrollbar {
     width: 8px;

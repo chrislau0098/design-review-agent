@@ -273,7 +273,18 @@ export function App() {
             frame: 'frame' in prev ? prev.frame : undefined,
           }));
         },
-        onDone: () => {},
+        onDone: () => {
+          // Stream 结束后兜底 · 如果还在 reviewing 就说明 backend 提前断连
+          // (Vercel 300s hard cap + 复杂 Component 超时的常见路径)
+          setState((prev) => {
+            if (prev.phase !== 'reviewing') return prev;
+            return {
+              phase: 'error',
+              message: '评审未完成 · 连接提前中断(Vercel 300s 上限或复杂 Frame 导致)',
+              frame: prev.frame,
+            };
+          });
+        },
       }
     );
   };

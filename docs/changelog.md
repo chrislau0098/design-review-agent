@@ -5,6 +5,25 @@ Conventional Commits: `feat:` / `fix:` / `chore:` / `docs:` / `refactor:` / `tes
 
 ## [Unreleased]
 
+## [v0.2.4] · 2026-07-07 · M2.5.4 · Progress asymptote + timeout + 圆角 badge
+
+### Fixed
+- **Progress bar 满死不动**(用户报截图 · 14m 综合评审段 progress 到 100% 静止)
+  - 段内插值 `Math.min(sec/est, 1)` → `1 - Math.exp(-sec/est)` 渐近曲线
+  - 每段留 3% buffer · 段内 progress 永不满
+  - + CSS shimmer 覆盖动画 · filled 部分永远视觉动感(1.8s 循环)
+- **无限 spinner**(Vercel 300s 断连但前端不识别)
+  - runReview 加 SSE inactivity 检测(300s 无 event 自动 abort + toast)
+  - `onDone` callback 兜底 · reviewing phase 未收到 done event → 显式转 error 报「评审未完成 · 连接提前中断」
+- **复杂 Component 卡死**(用户报 · 解绑组件后正常)
+  - `extractStructure` 加 `MAX_STRUCTURE_DEPTH = 8` · 避免 nested instance 无限递归撑爆 payload
+  - Doubao prompt 强化 nodeIds 输出规则:**优先叶子 · 不选顶层容器 · 单 finding 1-3 个 id 最佳**
+
+### Changed
+- Inspect 按钮文案 → **定位**(Chris 指定 · 更本地化)
+- Findings 卡片段落间距:`space-y-3.5` → `space-y-5` · 现象 / 建议 / 引用 三段更松弛
+- Badge 圆角:`rounded-md` → `rounded-full` pill 全圆角 · 移除 border · 浅底 8-12% chroma · 视觉重量匹配 shadcn `secondary`
+
 ## [v0.2.3] · 2026-07-07 · M2.5.3 · 页面布局 dimension + principle URL 命中
 
 ### Added (Backend)

@@ -11,7 +11,7 @@ const BASE_PROMPT_STRUCTURE = `严格输出 JSON · findings 数组 · 每条 fi
     Fitts's Law / Hick's Law / Miller's Law / Jakob's Law / Tesler's Law / Postel's Law / Occam's Razor / Pareto Principle / Parkinson's Law / Chunking / Serial Position / Peak-End Rule / Aesthetic-Usability / Von Restorff / Zeigarnik / Doherty Threshold / Law of Proximity / Law of Similarity / Common Region / Uniform Connectedness / Prägnanz / Gestalt / WCAG 2.1 / Nielsen 10 Heuristics / Material Design / iOS HIG / Refactoring UI
     可用中文补充说明 · 但至少含一个上述 keyword。**不确定就留空字符串 ""** · 不要编造。
 - category: (可选)细分类 · 从固定枚举选一个 · 例如「层级差异」「主次对比」「视觉焦点」「尺寸一致性」「间距节奏」「强调元素」「信息分组」「分组边界」「空态一致性」· 不确定留空
-- nodeIds: (可选)引用的节点 id 数组 · 从「节点结构」JSON 里挑关联该 finding 的 node · 只填 id 字符串 · 找不到相关节点或不确定就返回空数组 [] · **禁止编造不存在的 id**
+- nodeIds: (可选)引用的节点 id 数组 · 从「节点结构」JSON 里挑关联该 finding 的 node · **优先选叶子节点(TEXT / 具体元素)· 不选顶层 FRAME / COMPONENT 容器** · 只填 id 字符串 · 找不到相关节点或不确定就返回空数组 [] · **禁止编造不存在的 id** · **单条 finding 引用 1-3 个 id 最佳 · 避免全选**
 
 严禁寒暄 · 严禁 markdown 代码块 · 直接输出 JSON 对象。`;
 

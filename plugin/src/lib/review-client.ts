@@ -5,11 +5,12 @@ export const BACKEND_URL = 'https://design-review-agent.vercel.app/api/review';
 export interface ReviewCallbacks {
   onEvent: (event: SSEEvent) => void;
   onError: (message: string) => void;
-  onDone: () => void;
+  onDone: (reason: 'stream_ended' | 'aborted' | 'error') => void;
 }
 
-// SSE 消费 · 按 api-contract §Response Merge 规则处理
-// M2 backend 端 findings 会批量到达(non-streaming) · 我们的 parser 一样按事件流处理
+// M2.5.4 · SSE inactivity 检测 · 300s 无 event 认为 backend 超时
+const INACTIVITY_TIMEOUT_MS = 300_000;
+
 export async function runReview(request: ReviewRequest, cb: ReviewCallbacks): Promise<void> {
   let response: Response;
   try {
@@ -20,6 +21,7 @@ export async function runReview(request: ReviewRequest, cb: ReviewCallbacks): Pr
     });
   } catch (e) {
     cb.onError(`网络错误:${e instanceof Error ? e.message : String(e)}`);
+    cb.onDone('error');
     return;
   }
 
@@ -32,17 +34,30 @@ export async function runReview(request: ReviewRequest, cb: ReviewCallbacks): Pr
       // ignore
     }
     cb.onError(detail);
+    cb.onDone('error');
     return;
   }
 
   if (!response.body) {
     cb.onError('响应体为空 · 无 stream 可读');
+    cb.onDone('error');
     return;
   }
 
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
+  let lastEventTime = Date.now();
+  let sawDoneEvent = false;
+
+  // Inactivity watchdog · 3 分钟无 event 则 abort
+  const watchdogInterval = setInterval(() => {
+    if (Date.now() - lastEventTime > INACTIVITY_TIMEOUT_MS) {
+      cb.onError('SSE 流 3 分钟无新事件 · 可能是后端超时或网络中断');
+      clearInterval(watchdogInterval);
+      reader.cancel().catch(() => {});
+    }
+  }, 10_000);
 
   try {
     while (true) {
@@ -50,7 +65,6 @@ export async function runReview(request: ReviewRequest, cb: ReviewCallbacks): Pr
       if (done) break;
       buffer += decoder.decode(value, { stream: true });
 
-      // 按 \n\n 切 SSE event
       while (true) {
         const idx = buffer.indexOf('\n\n');
         if (idx === -1) break;
@@ -63,18 +77,30 @@ export async function runReview(request: ReviewRequest, cb: ReviewCallbacks): Pr
           if (!payload) continue;
           try {
             const parsed = JSON.parse(payload) as SSEEvent;
+            if (parsed.type === 'done') sawDoneEvent = true;
+            lastEventTime = Date.now();
             cb.onEvent(parsed);
           } catch (e) {
-            // 单个坏事件不阻塞后续 stream
             console.warn('SSE parse failed:', e, payload);
           }
         }
       }
     }
   } catch (e) {
-    cb.onError(`Stream 读取中断:${e instanceof Error ? e.message : String(e)}`);
+    clearInterval(watchdogInterval);
+    if (!sawDoneEvent) {
+      cb.onError(`Stream 读取中断:${e instanceof Error ? e.message : String(e)}`);
+      cb.onDone('error');
+    } else {
+      cb.onDone('stream_ended');
+    }
     return;
-  } finally {
-    cb.onDone();
   }
+  clearInterval(watchdogInterval);
+
+  // Stream closed without done event(Vercel 300s hard cap 断连)· 向上层报超时
+  if (!sawDoneEvent) {
+    cb.onError('评审超时 · Vercel Hobby plan 单请求 300s 上限 · Doubao 处理复杂 Frame 可能超出');
+  }
+  cb.onDone('stream_ended');
 }
