@@ -276,11 +276,29 @@ figma.ui.onmessage = (msg: {
   } else if (msg.type === 'INSPECT_NODES') {
     inspectNodeIds(msg.nodeIds ?? [], msg.fallbackHints ?? []);
   } else if (msg.type === 'OPEN_URL' && msg.url) {
-    // 白名单外的 URL 不打开(不用担心 XSS · Doubao 输出的 URL 我们不接受 · principle-links 白名单)
-    // 这里再做一次白名单校验
-    const allowed = /^https:\/\/(?:www\.)?(w3\.org|wikipedia\.org|nngroup\.com|m3\.material\.io|developer\.apple\.com|refactoringui\.com)\//;
-    if (allowed.test(msg.url)) {
-      figma.openExternal(msg.url);
+    // 白名单校验:host suffix 匹配 · 支持任意 subdomain(en.wikipedia.org / m3.material.io ...)
+    // Doubao 输出的 URL 我们不接受 · 只放行 principle-links 白名单
+    try {
+      const url = new URL(msg.url);
+      if (url.protocol !== 'https:') return;
+      const allowedSuffixes = [
+        'lawsofux.com',
+        'w3.org',
+        'wikipedia.org',
+        'nngroup.com',
+        'material.io',
+        'apple.com',
+        'refactoringui.com',
+      ];
+      const hostname = url.hostname.toLowerCase();
+      const match = allowedSuffixes.some(
+        (suffix) => hostname === suffix || hostname.endsWith(`.${suffix}`)
+      );
+      if (match) {
+        figma.openExternal(msg.url);
+      }
+    } catch (_e) {
+      // 非法 URL · 直接忽略
     }
   } else if (msg.type === 'LOAD_HISTORY') {
     void loadHistory();

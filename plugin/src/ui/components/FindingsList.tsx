@@ -9,10 +9,11 @@ const SEVERITY_VARIANT: Record<Severity, 'p0' | 'p1' | 'p2'> = {
   P2: 'p2',
 };
 
+// Chris 更新的文案 · P1 → 重点关注 · P2 → 可优化
 const SEVERITY_LABEL: Record<Severity, string> = {
   P0: 'P0 阻塞',
-  P1: 'P1 体验伤',
-  P2: 'P2 优化',
+  P1: 'P1 重点关注',
+  P2: 'P2 可优化',
 };
 
 interface FindingsListProps {
@@ -22,7 +23,7 @@ interface FindingsListProps {
   onOpenPrincipleUrl: (url: string) => void;
 }
 
-// impeccable · Card 减重感 · flat container · 内部靠 separator + spacing 分层
+// 正文 15-16px · 建议与问题正文左对齐(移除 padding block)· 用 small label 而非背景块区分
 export function FindingsList({
   findings,
   dimensionLabel,
@@ -31,18 +32,18 @@ export function FindingsList({
 }: FindingsListProps) {
   if (findings.length === 0) {
     return (
-      <div className="text-[12px] text-muted-foreground text-center py-8">
+      <div className="text-[13px] text-muted-foreground text-center py-10">
         本维度没有 findings · 设计稿视觉层级 OK
       </div>
     );
   }
 
   return (
-    <div className="space-y-1">
-      <div className="text-[11px] uppercase tracking-wider text-muted-foreground px-1 pb-1 font-medium">
+    <div className="space-y-3">
+      <div className="text-[11px] uppercase tracking-wider text-muted-foreground px-1 font-medium">
         {dimensionLabel} · {findings.length} 条 findings
       </div>
-      <div className="space-y-2">
+      <div className="space-y-2.5">
         {findings.map((f, i) => {
           const principleLink = f.principle ? resolvePrincipleLink(f.principle) : null;
           const hasInspect = f.nodeIds && f.nodeIds.length > 0;
@@ -52,20 +53,19 @@ export function FindingsList({
               key={i}
               className="rounded-lg bg-card border border-border/60 overflow-hidden transition-colors duration-150 ease-out-quart hover:border-border"
             >
-              <div className="flex items-center gap-2 px-3.5 py-2.5 border-b border-border/50">
-                <span className="text-[11px] font-mono tabular-nums text-muted-foreground/70 min-w-[16px]">
+              {/* header row */}
+              <div className="flex items-center gap-2 px-4 pt-3 pb-2.5">
+                <span className="text-[11px] font-mono tabular-nums text-muted-foreground/70 min-w-[18px]">
                   {String(i + 1).padStart(2, '0')}
                 </span>
-                <Badge variant={SEVERITY_VARIANT[f.severity]} dot>
-                  {SEVERITY_LABEL[f.severity]}
-                </Badge>
+                <Badge variant={SEVERITY_VARIANT[f.severity]}>{SEVERITY_LABEL[f.severity]}</Badge>
                 {f.category && (
-                  <span className="text-[11px] text-muted-foreground">{f.category}</span>
+                  <span className="text-[11.5px] text-muted-foreground">{f.category}</span>
                 )}
                 <div className="flex-1" />
                 {hasInspect && (
                   <button
-                    className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors duration-150 ease-out-quart"
+                    className="inline-flex items-center gap-1 h-6 px-2 rounded-md text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted transition-colors duration-150 ease-out-quart"
                     onClick={() => onInspect(f)}
                   >
                     <Crosshair className="w-3 h-3" />
@@ -74,28 +74,33 @@ export function FindingsList({
                 )}
               </div>
 
-              <div className="px-3.5 py-3 space-y-3">
-                <div className="text-[12.5px] leading-[1.6]">{f.description}</div>
+              {/* body · 现象和建议同一 x 位置(px-4)· 用 label 分层不用背景色 */}
+              <div className="px-4 pb-4 pt-1 space-y-3.5">
+                <div className="text-[15px] leading-[1.65] tracking-[-0.005em]">
+                  {f.description}
+                </div>
 
-                <div className="rounded-md bg-muted/50 px-3 py-2.5">
-                  <div className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-1">
+                <div>
+                  <div className="text-[10.5px] font-medium uppercase tracking-wider text-muted-foreground mb-1">
                     建议
                   </div>
-                  <div className="text-[12.5px] leading-[1.55]">{f.suggestion}</div>
+                  <div className="text-[15px] leading-[1.65] tracking-[-0.005em]">
+                    {f.suggestion}
+                  </div>
                 </div>
 
                 {f.principle && (
-                  <div className="flex items-start gap-2 pt-0.5">
-                    <div className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground shrink-0 pt-0.5">
+                  <div>
+                    <div className="text-[10.5px] font-medium uppercase tracking-wider text-muted-foreground mb-1">
                       引用
                     </div>
-                    <div className="text-[11.5px] text-muted-foreground leading-[1.55] flex-1">
-                      <span className="italic">{f.principle}</span>
+                    <div className="text-[12.5px] text-muted-foreground leading-[1.6] italic">
+                      {f.principle}
                       {principleLink && (
                         <>
                           {' '}
                           <button
-                            className="inline-flex items-center gap-0.5 text-foreground/75 hover:text-foreground underline decoration-dotted underline-offset-2 transition-colors duration-150 ease-out-quart"
+                            className="not-italic inline-flex items-center gap-0.5 text-foreground/75 hover:text-foreground underline decoration-dotted underline-offset-2 transition-colors duration-150 ease-out-quart"
                             onClick={() => onOpenPrincipleUrl(principleLink.url)}
                           >
                             {principleLink.label}
@@ -114,4 +119,3 @@ export function FindingsList({
     </div>
   );
 }
-

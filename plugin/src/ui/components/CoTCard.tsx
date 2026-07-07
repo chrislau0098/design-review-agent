@@ -1,7 +1,7 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Progress } from '@/ui/components/ui/progress';
 import { STAGE_LABELS, STAGE_ORDER, STAGE_SUB_TASKS, type StageId } from '@/lib/api-contract';
-import { Check, Loader2, Sparkles } from 'lucide-react';
+import { Check, ChevronDown, Loader2, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface CoTCardProps {
@@ -11,9 +11,16 @@ interface CoTCardProps {
   totalElapsedSec: number;
 }
 
-// impeccable · 减 elevation · subtle progress · 阶段用图标 / dot 而不是彩色圆
+// Accordion 风格 · 用户可点击任意段展开/折叠 · 默认 active 展开
+// Progress bar 4px + primary color · 显著但不喧宾夺主
 export function CoTCard({ currentStage, stageStartTimes, now, totalElapsedSec }: CoTCardProps) {
   const currentIdx = currentStage ? STAGE_ORDER.indexOf(currentStage) : -1;
+  const [openStage, setOpenStage] = useState<StageId | null>(currentStage);
+
+  // active stage 变化 → 自动展开(用户手动切换后不干扰当前展开状态)
+  useEffect(() => {
+    if (currentStage) setOpenStage(currentStage);
+  }, [currentStage]);
 
   const progressPct = useMemo(() => {
     if (currentIdx < 0) return 0;
@@ -32,11 +39,11 @@ export function CoTCard({ currentStage, stageStartTimes, now, totalElapsedSec }:
   }, [currentIdx, currentStage, stageStartTimes, now]);
 
   return (
-    <div className="space-y-3.5 rounded-lg bg-card border border-border/60 p-3.5">
+    <div className="space-y-4 rounded-lg bg-card border border-border/60 p-4">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5">
           <Sparkles className="w-3.5 h-3.5 text-foreground/70" />
-          <div className="text-[13px] font-semibold">正在评审</div>
+          <div className="text-[13.5px] font-semibold">正在评审</div>
         </div>
         <div className="text-[11px] text-muted-foreground tabular-nums">
           {formatElapsed(totalElapsedSec)}
@@ -45,7 +52,7 @@ export function CoTCard({ currentStage, stageStartTimes, now, totalElapsedSec }:
 
       <Progress value={progressPct} />
 
-      <div className="space-y-0.5 pt-0.5">
+      <div className="space-y-1 pt-0.5">
         {STAGE_ORDER.map((stage, idx) => {
           const status: 'done' | 'active' | 'pending' =
             idx < currentIdx ? 'done' : idx === currentIdx ? 'active' : 'pending';
@@ -55,24 +62,27 @@ export function CoTCard({ currentStage, stageStartTimes, now, totalElapsedSec }:
           const elapsedSec = startTime
             ? Math.round(((nextStartTime ?? now) - startTime) / 1000)
             : 0;
-          const expanded = status === 'active';
+          const isOpen = openStage === stage;
 
           return (
-            <div key={stage} className="py-1">
-              <div className="flex items-center gap-2.5">
+            <div key={stage}>
+              <button
+                className="w-full flex items-center gap-2.5 py-1.5 rounded-md hover:bg-muted/40 transition-colors duration-150 ease-out-quart"
+                onClick={() => setOpenStage(isOpen ? null : stage)}
+              >
                 <div className="w-4 h-4 flex items-center justify-center shrink-0">
                   {status === 'done' ? (
-                    <Check className="w-3 h-3 text-foreground/60" strokeWidth={2.5} />
+                    <Check className="w-3 h-3 text-foreground/70" strokeWidth={2.5} />
                   ) : status === 'active' ? (
-                    <Loader2 className="w-3 h-3 text-foreground/70 animate-spin" />
+                    <Loader2 className="w-3 h-3 text-foreground/80 animate-spin" />
                   ) : (
                     <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30" />
                   )}
                 </div>
                 <div
                   className={cn(
-                    'text-[12.5px] flex-1',
-                    status === 'pending' ? 'text-muted-foreground/60' : 'text-foreground',
+                    'text-[13px] flex-1 text-left',
+                    status === 'pending' ? 'text-muted-foreground/70' : 'text-foreground',
                     status === 'active' && 'font-medium'
                   )}
                 >
@@ -81,13 +91,19 @@ export function CoTCard({ currentStage, stageStartTimes, now, totalElapsedSec }:
                 <div className="text-[10.5px] text-muted-foreground tabular-nums">
                   {elapsedSec > 0 ? `${elapsedSec}s` : ''}
                 </div>
-              </div>
-              {expanded && (
-                <div className="pl-6 pt-1.5 space-y-1">
+                <ChevronDown
+                  className={cn(
+                    'w-3 h-3 text-muted-foreground/60 transition-transform duration-200 ease-out-quart',
+                    isOpen && 'rotate-180'
+                  )}
+                />
+              </button>
+              {isOpen && (
+                <div className="pl-6 pb-2 space-y-1">
                   {STAGE_SUB_TASKS[stage].map((task, i) => (
                     <div
                       key={i}
-                      className="text-[11.5px] text-muted-foreground leading-[1.5]"
+                      className="text-[12px] text-muted-foreground leading-[1.5]"
                     >
                       {task}
                     </div>

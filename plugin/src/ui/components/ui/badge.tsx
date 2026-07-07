@@ -2,20 +2,19 @@ import * as React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
-// impeccable · subtle severity indicators
-// 不用饱和填充 · 用 dot + text 或 outline · 保持对比但降低视觉重量
+// shadcn 一致标签 · 同结构 · 只文字色 / 边框色差异
+// P0/P1/P2 共享同一视觉重量:outline · 淡背景 · 有色文字
 const badgeVariants = cva(
-  'inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[11px] font-medium tracking-tight transition-colors duration-150 ease-out-quart',
+  'inline-flex items-center rounded-md border px-2 py-0.5 text-[11px] font-medium tracking-tight leading-none transition-colors duration-150 ease-out-quart',
   {
     variants: {
       variant: {
-        default: 'bg-primary/8 text-primary',
-        secondary: 'bg-secondary text-secondary-foreground',
-        outline: 'border border-border text-muted-foreground',
-        // Severity · dot before label · 无强填充 · impeccable 灵魂
-        p0: 'text-severity-p0 bg-severity-p0/8',
-        p1: 'text-severity-p1 bg-severity-p1/10',
-        p2: 'text-muted-foreground bg-muted',
+        default: 'border-transparent bg-primary text-primary-foreground',
+        secondary: 'border-transparent bg-secondary text-secondary-foreground',
+        outline: 'border-border text-muted-foreground bg-background',
+        p0: 'border-severity-p0/25 bg-severity-p0/10 text-severity-p0',
+        p1: 'border-severity-p1/25 bg-severity-p1/12 text-severity-p1',
+        p2: 'border-severity-p2/25 bg-severity-p2/10 text-severity-p2',
       },
     },
     defaultVariants: { variant: 'default' },
@@ -24,27 +23,10 @@ const badgeVariants = cva(
 
 export interface BadgeProps
   extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof badgeVariants> {
-  dot?: boolean; // 前置一个小圆点(视觉锚点 · 不做主要色区)
-}
+    VariantProps<typeof badgeVariants> {}
 
-export function Badge({ className, variant, dot, children, ...props }: BadgeProps) {
-  return (
-    <div className={cn(badgeVariants({ variant }), className)} {...props}>
-      {dot && (
-        <span
-          className={cn(
-            'w-1.5 h-1.5 rounded-full',
-            variant === 'p0' && 'bg-severity-p0',
-            variant === 'p1' && 'bg-severity-p1',
-            variant === 'p2' && 'bg-muted-foreground/60',
-            !variant && 'bg-primary/60'
-          )}
-        />
-      )}
-      {children}
-    </div>
-  );
+export function Badge({ className, variant, ...props }: BadgeProps) {
+  return <div className={cn(badgeVariants({ variant }), className)} {...props} />;
 }
 
 export { badgeVariants };

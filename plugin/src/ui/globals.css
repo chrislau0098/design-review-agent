@@ -49,6 +49,7 @@
     height: 100%;
     margin: 0;
     padding: 0;
+    overflow: hidden; /* 底部横向 scrollbar bug fix · HistorySheet absolute 会撑宽 body */
   }
 
   body {

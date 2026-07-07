@@ -5,6 +5,29 @@ Conventional Commits: `feat:` / `fix:` / `chore:` / `docs:` / `refactor:` / `tes
 
 ## [Unreleased]
 
+## [v0.2.2] · 2026-07-07 · M2.5.2 · UX 8 条修复
+
+### Fixed
+- **Principle 链接打不开**(用户报)· 白名单 regex 只放行 `wikipedia.org` / `www.wikipedia.org` · 漏了 `en.wikipedia.org`
+  - Sandbox 侧改用 `new URL()` parse + `hostname.endsWith(`.${suffix}`)` · 支持任意 subdomain
+  - 顺便加 `lawsofux.com` 白名单 · 优先映射到 Laws of UX 权威分类页(Fitts / Hick / Miller / Jakob / Tesler / Gestalt 全套 + 隔离/序位/峰终/奥卡姆/Pareto/组块 等 20+ 条)
+- **底部常驻横向 scrollbar**(用户报)· HistorySheet `absolute` 撑宽 body → root `overflow: hidden`
+- App container 加 `overflow-hidden`(双保险)
+
+### Changed (Plugin UI · Chris 反馈 5 条)
+- **评审深度 → Radio 卡片**:「快速」+ 「深度」· 每卡片含标题 / 图标 / 预估耗时(1–2 min / 5–8 min) / 一句说明(初版排查 / 深度分析)· active 有右上打勾
+- **新增评审维度 Radio 卡片**:「视觉层级」/「信息分组」可选 · 「Design Token」/「设计组件规范」disabled + `Coming Soon` badge
+- **CoT 段可展开折叠 accordion**:每段 header 可点击 · chevron 显示旋转 · active 段默认展开 · 用户可手动切换查看子任务
+- **Progress bar 加粗** 3px → 4px + foreground/85 · 视觉存在感提升
+- **Findings 正文 12.5px → 15px** · 「建议」区块移除背景块 padding · 与「现象」左对齐 · 只用 tiny label 分层
+- **文案**:P1「体验伤」→「重点关注」· P2「nice-to-have」/「优化」→「可优化」
+- **Badge 一致 shadcn 化**:P0/P1/P2 统一 outline + `bg-severity-*/10-12` + colored text · 相同视觉重量 · 移除 dot 前缀
+
+### Changed (Backend)
+- `information-grouping` prompt 从 stub 提上来到 visual-hierarchy 同等质量(用户可在 UI 选此维度)
+- 覆盖:同类聚合 / 分组边界 / 卡片粒度 / 内容层级 / 空态一致性 / 反例
+- Prod redeployed
+
 ## [v0.2.1] · 2026-07-07 · M2.5.1 · Bug fixes + impeccable UI
 
 ### Fixed (Plugin)

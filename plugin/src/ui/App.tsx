@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/ui/components/ui/button';
+import { Badge } from '@/ui/components/ui/badge';
 import { ScrollArea } from '@/ui/components/ui/scroll-area';
 import { FrameCard } from '@/ui/components/FrameCard';
 import { CoTCard } from '@/ui/components/CoTCard';
@@ -16,7 +17,8 @@ import {
   type Mode,
   type StageId,
 } from '@/lib/api-contract';
-import { AlertCircle, Clock, MousePointerClick, Sparkles, Zap } from 'lucide-react';
+import { AlertCircle, Clock, MousePointerClick, Sparkles, Zap, Check } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 type FigmaMessage =
   | { type: 'FRAME_SELECTED'; frameName: string; width: number; height: number; thumbnailUrl?: string }
@@ -52,6 +54,7 @@ type AppState =
       stageStartTimes: Partial<Record<StageId, number>>;
       startedAt: number;
       findings: Finding[];
+      dimensionId: DimensionId;
       frameStructure?: FrameStructureNode[];
     }
   | {
@@ -64,16 +67,51 @@ type AppState =
       frameStructure?: FrameStructureNode[];
     }
   | { phase: 'error'; message: string; frame?: FrameInfo }
-  | {
-      phase: 'viewing-history';
-      entry: HistoryEntry;
-    };
+  | { phase: 'viewing-history'; entry: HistoryEntry };
 
-const M2_DIMENSION: DimensionId = 'visual-hierarchy';
+interface ModeOption {
+  id: Mode;
+  title: string;
+  eta: string;
+  description: string;
+  icon: typeof Zap;
+}
+
+const MODE_OPTIONS: ModeOption[] = [
+  {
+    id: 'light',
+    title: '快速',
+    eta: '1–2 min',
+    description: '适用于初版设计方案快速排查潜在问题',
+    icon: Zap,
+  },
+  {
+    id: 'deep',
+    title: '深度',
+    eta: '5–8 min',
+    description: '深度分析设计方案中存在的问题,速度较慢',
+    icon: Sparkles,
+  },
+];
+
+interface DimensionOption {
+  id: DimensionId | string;
+  label: string;
+  enabled: boolean;
+  comingSoon?: boolean;
+}
+
+const DIMENSION_OPTIONS: DimensionOption[] = [
+  { id: 'visual-hierarchy', label: '视觉层级', enabled: true },
+  { id: 'information-grouping', label: '信息分组', enabled: true },
+  { id: 'design-token', label: 'Design Token', enabled: false, comingSoon: true },
+  { id: 'component-spec', label: '设计组件规范', enabled: false, comingSoon: true },
+];
 
 export function App() {
   const [state, setState] = useState<AppState>({ phase: 'no-selection' });
   const [mode, setMode] = useState<Mode>('light');
+  const [selectedDimension, setSelectedDimension] = useState<DimensionId>('visual-hierarchy');
   const [now, setNow] = useState<number>(Date.now());
   const [inspectToast, setInspectToast] = useState<string | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
@@ -109,12 +147,10 @@ export function App() {
 
       if (msg.type === 'NO_SELECTION') {
         const s = stateRef.current;
-        // Bug 1 修复:reviewing/done/viewing-history 阶段 mute selectionchange 变化
         if (s.phase === 'reviewing' || s.phase === 'done' || s.phase === 'viewing-history') return;
         setState({ phase: 'no-selection' });
       } else if (msg.type === 'FRAME_SELECTED') {
         const s = stateRef.current;
-        // Bug 1 · 核心修复:done/viewing-history 阶段不切 · 保留 findings 视图
         if (s.phase === 'reviewing' || s.phase === 'done' || s.phase === 'viewing-history') return;
         setState({
           phase: 'selected',
@@ -139,8 +175,6 @@ export function App() {
         }
       } else if (msg.type === 'HISTORY_LOADED') {
         setHistory(msg.entries);
-      } else if (msg.type === 'HISTORY_SAVED') {
-        // no-op
       } else if (msg.type === 'HISTORY_SAVE_FAILED') {
         console.warn('history save failed:', msg.message);
       }
@@ -169,10 +203,12 @@ export function App() {
     });
 
     const collected: Finding[] = [];
+    const dimensionId = stateRef.current.phase === 'reviewing' ? stateRef.current.dimensionId : selectedDimension;
+
     await runReview(
       {
         imageBase64,
-        dimensions: [M2_DIMENSION],
+        dimensions: [dimensionId],
         mode,
         frameStructure,
       },
@@ -207,13 +243,12 @@ export function App() {
               frame: prev.frame,
               findings: collected,
               elapsedSec,
-              dimensionId: M2_DIMENSION,
+              dimensionId: prev.dimensionId,
               mode,
               frameStructure: prev.frameStructure,
             };
             setState(finalState);
 
-            // 落地历史 · FIFO 上限 20
             const entry: HistoryEntry = {
               id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
               frameName: prev.frame.name,
@@ -221,7 +256,7 @@ export function App() {
               frameHeight: prev.frame.height,
               frameThumbnail: prev.frame.thumbnail,
               mode,
-              dimensionId: M2_DIMENSION,
+              dimensionId: prev.dimensionId,
               findings: collected,
               frameStructure: prev.frameStructure,
               timestamp: Date.now(),
@@ -252,15 +287,13 @@ export function App() {
       stageStartTimes: {},
       startedAt: Date.now(),
       findings: [],
+      dimensionId: selectedDimension,
     });
     postToFigma({ type: 'REQUEST_EXPORT' });
   };
 
   const handleReset = () => {
-    // 从 done/history 回到「等待新一次评审」· 需要向 sandbox 拉一次最新 selection
     setState({ phase: 'no-selection' });
-    // Trigger sandbox re-emit(用户可能已经切换 Frame)
-    // sandbox 侧下次 selectionchange 自然触发 · 无需手动
   };
 
   const handleInspect = (finding: Finding) => {
@@ -288,9 +321,16 @@ export function App() {
     return Math.max(0, Math.round((now - state.startedAt) / 1000));
   }, [state, now]);
 
+  const activeDimensionLabel =
+    state.phase === 'reviewing' || state.phase === 'done'
+      ? DIMENSION_LABELS[state.dimensionId]
+      : state.phase === 'viewing-history'
+        ? DIMENSION_LABELS[state.entry.dimensionId]
+        : DIMENSION_LABELS[selectedDimension];
+
   return (
-    <div className="flex flex-col h-full relative">
-      <header className="px-4 py-3 flex items-center gap-2 border-b border-border/60 bg-background">
+    <div className="flex flex-col h-full relative overflow-hidden">
+      <header className="px-4 py-3 flex items-center gap-2 border-b border-border/60 bg-background shrink-0">
         <Sparkles className="w-3.5 h-3.5 text-foreground/70" />
         <div className="text-[13px] font-semibold flex-1">Base 设计评审 Agent</div>
         <button
@@ -313,15 +353,13 @@ export function App() {
           {state.phase === 'no-selection' && (
             <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
               <MousePointerClick className="w-6 h-6 text-muted-foreground/60" strokeWidth={1.5} />
-              <div className="text-[12px] text-muted-foreground max-w-[240px] leading-[1.55]">
+              <div className="text-[13px] text-muted-foreground max-w-[260px] leading-[1.55]">
                 在 Figma 里选中一个 Frame 或 Component,开始 AI 视觉层级评审
               </div>
             </div>
           )}
 
-          {(state.phase === 'selected' ||
-            state.phase === 'reviewing' ||
-            state.phase === 'done') && (
+          {state.phase === 'selected' && (
             <>
               <FrameCard
                 frameName={state.frame.name}
@@ -329,70 +367,138 @@ export function App() {
                 thumbnailUrl={state.frame.thumbnail}
               />
 
-              {state.phase === 'selected' && (
-                <>
-                  <div className="text-[10.5px] uppercase tracking-wider text-muted-foreground px-1 font-medium">
-                    评审深度
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant={mode === 'light' ? 'default' : 'outline'}
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => setMode('light')}
-                    >
-                      <Zap className="w-3 h-3" /> 轻量
-                    </Button>
-                    <Button
-                      variant={mode === 'deep' ? 'default' : 'outline'}
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => setMode('deep')}
-                    >
-                      <Sparkles className="w-3 h-3" /> 深度
-                    </Button>
-                  </div>
-                  <Button className="w-full mt-1" onClick={handleStartReview}>
-                    开始评审
-                  </Button>
-                </>
-              )}
+              {/* Mode radio cards */}
+              <div className="space-y-2 pt-1">
+                <div className="text-[10.5px] uppercase tracking-wider text-muted-foreground px-0.5 font-medium">
+                  评审深度
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {MODE_OPTIONS.map((opt) => {
+                    const active = mode === opt.id;
+                    const Icon = opt.icon;
+                    return (
+                      <button
+                        key={opt.id}
+                        className={cn(
+                          'text-left rounded-lg border p-3 transition-all duration-150 ease-out-quart relative',
+                          active
+                            ? 'border-foreground/85 bg-card shadow-[0_0_0_1px_oklch(var(--foreground)/0.15)]'
+                            : 'border-border/60 bg-card hover:border-border'
+                        )}
+                        onClick={() => setMode(opt.id)}
+                      >
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <div className="flex items-center gap-1.5">
+                            <Icon className="w-3.5 h-3.5 text-foreground/75" />
+                            <div className="text-[13px] font-semibold">{opt.title}</div>
+                          </div>
+                          <div className="text-[10.5px] text-muted-foreground tabular-nums">
+                            {opt.eta}
+                          </div>
+                        </div>
+                        <div className="text-[11.5px] text-muted-foreground leading-[1.5]">
+                          {opt.description}
+                        </div>
+                        {active && (
+                          <div className="absolute top-2 right-2 w-3.5 h-3.5 rounded-full bg-foreground flex items-center justify-center">
+                            <Check className="w-2.5 h-2.5 text-background" strokeWidth={3} />
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
-              {state.phase === 'reviewing' && (
-                <>
-                  <CoTCard
-                    currentStage={state.currentStage}
-                    stageStartTimes={state.stageStartTimes}
-                    now={now}
-                    totalElapsedSec={totalElapsedSec}
-                  />
-                  {state.findings.length > 0 && (
-                    <FindingsList
-                      findings={state.findings}
-                      dimensionLabel={DIMENSION_LABELS[M2_DIMENSION]}
-                      onInspect={handleInspect}
-                      onOpenPrincipleUrl={handleOpenPrincipleUrl}
-                    />
-                  )}
-                </>
-              )}
+              {/* Dimension radio buttons */}
+              <div className="space-y-2 pt-1">
+                <div className="text-[10.5px] uppercase tracking-wider text-muted-foreground px-0.5 font-medium">
+                  评审维度
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {DIMENSION_OPTIONS.map((opt) => {
+                    const active = opt.enabled && selectedDimension === opt.id;
+                    const disabled = !opt.enabled;
+                    return (
+                      <button
+                        key={opt.id}
+                        disabled={disabled}
+                        className={cn(
+                          'text-left rounded-lg border px-3 py-2.5 transition-all duration-150 ease-out-quart relative',
+                          active && 'border-foreground/85 bg-card shadow-[0_0_0_1px_oklch(var(--foreground)/0.15)]',
+                          !active && !disabled && 'border-border/60 bg-card hover:border-border',
+                          disabled && 'border-border/40 bg-muted/40 cursor-not-allowed opacity-70'
+                        )}
+                        onClick={() => opt.enabled && setSelectedDimension(opt.id as DimensionId)}
+                      >
+                        <div className="text-[12.5px] font-medium">{opt.label}</div>
+                        {opt.comingSoon && (
+                          <div className="mt-1">
+                            <Badge variant="outline" className="text-[9.5px] px-1.5 py-0">
+                              Coming Soon
+                            </Badge>
+                          </div>
+                        )}
+                        {active && (
+                          <div className="absolute top-2 right-2 w-3 h-3 rounded-full bg-foreground flex items-center justify-center">
+                            <Check className="w-2 h-2 text-background" strokeWidth={3} />
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
-              {state.phase === 'done' && (
-                <>
-                  <div className="text-[10.5px] uppercase tracking-wider text-muted-foreground px-1">
-                    评审完成 · 用时 {formatDuration(state.elapsedSec)}
-                  </div>
-                  <FindingsList
-                    findings={state.findings}
-                    dimensionLabel={DIMENSION_LABELS[M2_DIMENSION]}
-                    onInspect={handleInspect}
-                    onOpenPrincipleUrl={handleOpenPrincipleUrl}
-                  />
-                  <Button variant="outline" size="sm" className="w-full mt-1" onClick={handleReset}>
-                    重新选择 Frame
-                  </Button>
-                </>
+              <Button className="w-full mt-2" onClick={handleStartReview}>
+                开始评审
+              </Button>
+            </>
+          )}
+
+          {state.phase === 'reviewing' && (
+            <>
+              <FrameCard
+                frameName={state.frame.name}
+                frameSize={{ width: state.frame.width, height: state.frame.height }}
+                thumbnailUrl={state.frame.thumbnail}
+              />
+              <CoTCard
+                currentStage={state.currentStage}
+                stageStartTimes={state.stageStartTimes}
+                now={now}
+                totalElapsedSec={totalElapsedSec}
+              />
+              {state.findings.length > 0 && (
+                <FindingsList
+                  findings={state.findings}
+                  dimensionLabel={activeDimensionLabel}
+                  onInspect={handleInspect}
+                  onOpenPrincipleUrl={handleOpenPrincipleUrl}
+                />
               )}
+            </>
+          )}
+
+          {state.phase === 'done' && (
+            <>
+              <FrameCard
+                frameName={state.frame.name}
+                frameSize={{ width: state.frame.width, height: state.frame.height }}
+                thumbnailUrl={state.frame.thumbnail}
+              />
+              <div className="text-[10.5px] uppercase tracking-wider text-muted-foreground px-1">
+                评审完成 · 用时 {formatDuration(state.elapsedSec)}
+              </div>
+              <FindingsList
+                findings={state.findings}
+                dimensionLabel={activeDimensionLabel}
+                onInspect={handleInspect}
+                onOpenPrincipleUrl={handleOpenPrincipleUrl}
+              />
+              <Button variant="outline" size="sm" className="w-full mt-1" onClick={handleReset}>
+                重新选择 Frame
+              </Button>
             </>
           )}
 
@@ -404,12 +510,12 @@ export function App() {
                 thumbnailUrl={state.entry.frameThumbnail}
               />
               <div className="text-[10.5px] uppercase tracking-wider text-muted-foreground px-1">
-                历史记录 · {new Date(state.entry.timestamp).toLocaleString('zh-CN')} ·{' '}
-                {state.entry.mode === 'deep' ? 'Pro' : 'Turbo'}
+                历史 · {new Date(state.entry.timestamp).toLocaleString('zh-CN')} ·{' '}
+                {state.entry.mode === 'deep' ? '深度' : '快速'}
               </div>
               <FindingsList
                 findings={state.entry.findings}
-                dimensionLabel={DIMENSION_LABELS[state.entry.dimensionId]}
+                dimensionLabel={activeDimensionLabel}
                 onInspect={handleInspect}
                 onOpenPrincipleUrl={handleOpenPrincipleUrl}
               />
@@ -430,7 +536,7 @@ export function App() {
               )}
               <div className="rounded-lg bg-severity-p0/8 px-3 py-2.5 flex gap-2 items-start">
                 <AlertCircle className="w-3.5 h-3.5 text-severity-p0 shrink-0 mt-0.5" />
-                <div className="text-[12px] text-severity-p0 leading-[1.55]">{state.message}</div>
+                <div className="text-[12.5px] text-severity-p0 leading-[1.55]">{state.message}</div>
               </div>
               <Button variant="outline" size="sm" className="w-full" onClick={handleReset}>
                 重试
@@ -448,7 +554,7 @@ export function App() {
       />
 
       {inspectToast && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-foreground text-background text-[11px] px-3 py-1.5 rounded-md shadow-lg pointer-events-none">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-foreground text-background text-[11px] px-3 py-1.5 rounded-md shadow-lg pointer-events-none">
           {inspectToast}
         </div>
       )}

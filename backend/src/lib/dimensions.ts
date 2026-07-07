@@ -20,8 +20,8 @@ const VISUAL_HIERARCHY_ROLE = `你是资深 B端 SaaS 设计师 · 专门审 UI 
 export const DIMENSION_PROMPTS: Record<DimensionId, string> = {
   'visual-hierarchy': `${VISUAL_HIERARCHY_ROLE}\n\n${BASE_PROMPT_STRUCTURE}`,
 
-  'information-grouping': `你是资深 B端 SaaS 设计师 · 审 UI 信息分组。
-覆盖:同类信息是否聚合 · 分组边界清晰度 · 卡片切分合理性 · 空态与实态一致性。
+  'information-grouping': `你是资深 B端 SaaS 设计师 · 专门审 UI 信息分组合理性。
+分析这张设计稿的信息分组问题 · 覆盖:同类信息是否聚合(相关字段是否放在一起)· 分组边界清晰度(分组用什么区分:间距/边框/背景/标题)· 卡片切分粒度(卡片是否切太细或太粗)· 分组内容层级(卡片内主次是否清晰)· 空态与实态一致性(空 state / loading / 满数据视觉是否同结构)· 反例(是否存在不相关信息混在一起 / 相关信息被拆散)。
 ${BASE_PROMPT_STRUCTURE}`,
 
   color: `你是资深 B端 SaaS 设计师 · 审 UI 配色。
