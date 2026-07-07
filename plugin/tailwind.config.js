@@ -29,14 +29,14 @@ export default {
           DEFAULT: 'oklch(var(--card))',
           foreground: 'oklch(var(--card-foreground))',
         },
+        progress: 'oklch(var(--progress))',
         severity: {
           p0: 'oklch(var(--severity-p0))',
           p1: 'oklch(var(--severity-p1))',
           p2: 'oklch(var(--severity-p2))',
         },
-        // impeccable · destructive 用 severity p0 alias 保持契约
         destructive: {
-          DEFAULT: 'oklch(var(--severity-p0))',
+          DEFAULT: 'oklch(var(--destructive))',
           foreground: 'oklch(0.99 0.003 250)',
         },
       },

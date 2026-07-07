@@ -17,7 +17,7 @@ import {
   type Mode,
   type StageId,
 } from '@/lib/api-contract';
-import { AlertCircle, Clock, MousePointerClick, Sparkles, Zap } from 'lucide-react';
+import { AlertCircle, ChevronLeft, Clock, MousePointerClick, Sparkles, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type FigmaMessage =
@@ -342,8 +342,20 @@ export function App() {
   return (
     <div className="flex flex-col h-full relative overflow-hidden">
       <header className="px-4 py-3 flex items-center gap-2 border-b border-border/60 bg-background shrink-0">
-        <Sparkles className="w-3.5 h-3.5 text-foreground/70" />
-        <div className="text-[13px] font-semibold flex-1">Base 设计评审 Agent</div>
+        {state.phase === 'done' || state.phase === 'viewing-history' ? (
+          <button
+            className="inline-flex items-center gap-1 h-6 px-1.5 -ml-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors duration-150 ease-out-quart flex-1"
+            onClick={handleReset}
+          >
+            <ChevronLeft className="w-3.5 h-3.5" />
+            <span className="text-[13px] font-semibold">评审结果</span>
+          </button>
+        ) : (
+          <>
+            <Sparkles className="w-3.5 h-3.5 text-foreground/70" />
+            <div className="text-[13px] font-semibold flex-1">Base 设计评审 Agent</div>
+          </>
+        )}
         <button
           className="inline-flex items-center gap-1 h-6 px-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors duration-150 ease-out-quart"
           onClick={() => {
@@ -393,7 +405,7 @@ export function App() {
                         className={cn(
                           'text-left rounded-lg border p-3 transition-all duration-150 ease-out-quart',
                           active
-                            ? 'border-foreground/85 bg-card shadow-[0_0_0_1px_oklch(var(--foreground)/0.15)]'
+                            ? 'border-foreground bg-foreground/[0.04] shadow-[0_0_0_1.5px_oklch(var(--foreground)/0.35)]'
                             : 'border-border/60 bg-card hover:border-border'
                         )}
                         onClick={() => setMode(opt.id)}
@@ -431,7 +443,7 @@ export function App() {
                         disabled={disabled}
                         className={cn(
                           'text-left rounded-lg border px-3 py-2.5 transition-all duration-150 ease-out-quart',
-                          active && 'border-foreground/85 bg-card shadow-[0_0_0_1px_oklch(var(--foreground)/0.15)]',
+                          active && 'border-foreground bg-foreground/[0.04] shadow-[0_0_0_1.5px_oklch(var(--foreground)/0.35)]',
                           !active && !disabled && 'border-border/60 bg-card hover:border-border',
                           disabled && 'border-border/40 bg-muted/40 cursor-not-allowed opacity-70'
                         )}
@@ -497,9 +509,6 @@ export function App() {
                 onInspect={handleInspect}
                 onOpenPrincipleUrl={handleOpenPrincipleUrl}
               />
-              <Button variant="outline" size="sm" className="w-full mt-1" onClick={handleReset}>
-                重新选择 Frame
-              </Button>
             </>
           )}
 
@@ -520,9 +529,6 @@ export function App() {
                 onInspect={handleInspect}
                 onOpenPrincipleUrl={handleOpenPrincipleUrl}
               />
-              <Button variant="outline" size="sm" className="w-full mt-1" onClick={handleReset}>
-                回到评审
-              </Button>
             </>
           )}
 
@@ -535,9 +541,9 @@ export function App() {
                   thumbnailUrl={state.frame.thumbnail}
                 />
               )}
-              <div className="rounded-lg bg-severity-p0/8 px-3 py-2.5 flex gap-2 items-start">
-                <AlertCircle className="w-3.5 h-3.5 text-severity-p0 shrink-0 mt-0.5" />
-                <div className="text-[12.5px] text-severity-p0 leading-[1.55]">{state.message}</div>
+              <div className="rounded-lg bg-destructive/10 px-3 py-2.5 flex gap-2 items-start">
+                <AlertCircle className="w-3.5 h-3.5 text-destructive shrink-0 mt-0.5" />
+                <div className="text-[12.5px] text-destructive leading-[1.55]">{state.message}</div>
               </div>
               <Button variant="outline" size="sm" className="w-full" onClick={handleReset}>
                 重试

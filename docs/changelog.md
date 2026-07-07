@@ -5,6 +5,24 @@ Conventional Commits: `feat:` / `fix:` / `chore:` / `docs:` / `refactor:` / `tes
 
 ## [Unreleased]
 
+## [v0.2.5] · 2026-07-07 · M2.5.5 · 色彩系统 + 评审结果 header
+
+### Changed
+- **Radio 卡片选中对比度**:selected border `foreground/85` → `foreground`(实心)· shadow ring 15% → 35% · 加 `bg-foreground/[0.04]` 微 tint · mode + dimension 两处同步
+- **Progress bar 从灰变蓝**:`bg-foreground/85`(monochrome)→ `bg-progress`(OKLCH vibrant blue `0.55 0.16 245`)· 新增 `--progress` CSS var
+- **Severity 色彩系统重构**(Chris 定):
+  - P0 → **蓝**(`0.52 0.16 250`)· 阻塞级信息 · 不刺眼
+  - P1 → **黄**(`0.72 0.15 85`)· 提高 chroma 明显
+  - P2 → 灰(`0.55 0.02 250`)· 冷调 · 保持中性
+  - Badge bg opacity 8-12% → 15-18% · 底色明显可见
+- **Error 独立 `--destructive`** = 红(`0.58 0.14 25`)· 与 severity-p0 解耦 · error alert 保留红色感 · Tailwind `destructive` color 独立 CSS var
+- **Header phase-aware**:done + viewing-history phase 显示 `← 评审结果` back button(onClick handleReset)· 其他 phase 显示原 `Sparkles + Base 设计评审 Agent`
+- **移除底部冗余按钮**:done 的「重新选择 Frame」+ viewing-history 的「回到评审」· header back button 已代替
+
+### Process
+- Chris 明确 Planner-Claude 定位 · 4 UI 修复派 Coder-plugin sub-agent(Sonnet)执行 · Planner review 后合入
+- Sub-agent 5 files 编辑 · typecheck PASS · build PASS
+
 ## [v0.2.4] · 2026-07-07 · M2.5.4 · Progress asymptote + timeout + 圆角 badge
 
 ### Fixed

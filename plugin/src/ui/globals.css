@@ -29,11 +29,14 @@
 
     --ring: 0.55 0.02 250;
 
-    /* Severity indicators · muted, low-saturation
-       用小 dot 而不是填充背景 · impeccable "no heavy accents" */
-    --severity-p0: 0.58 0.14 25;   /* muted rose · 不是消防车红 */
-    --severity-p1: 0.7 0.11 75;    /* honey amber · 不是霓虹黄 */
-    --severity-p2: 0.6 0.02 250;   /* muted slate · 中性 */
+    --progress: 0.55 0.16 245;  /* vibrant blue OKLCH · 明快 · 不刺眼 */
+
+    /* Severity indicators · 底色明显可见(非 dot-only)
+       P0 蓝(阻塞级信息)· P1 黄(提高 chroma)· P2 灰(中性冷调) */
+    --severity-p0: 0.52 0.16 250;  /* 蓝 · 阻塞级信息 · 不刺眼 */
+    --severity-p1: 0.72 0.15 85;   /* 黄 · 提高 chroma · 明显 */
+    --severity-p2: 0.55 0.02 250;  /* 灰 · slight cool tint */
+    --destructive: 0.58 0.14 25;   /* 红 · 专门给 error alerts 用 · 与 P0 解耦 */
 
     --radius: 0.5rem;
   }

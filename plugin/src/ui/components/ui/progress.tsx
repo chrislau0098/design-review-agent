@@ -22,7 +22,7 @@ export const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
         {...props}
       >
         <div
-          className="h-full bg-foreground/85 transition-all duration-[250ms] ease-out-quart relative overflow-hidden"
+          className="h-full bg-progress transition-all duration-[250ms] ease-out-quart relative overflow-hidden"
           style={{ width: `${clamped}%` }}
         >
           {animated && (
