@@ -16,12 +16,12 @@ const BASE_PROMPT_STRUCTURE = `严格输出 JSON · findings 数组 · 每条 fi
 严禁寒暄 · 严禁 markdown 代码块 · 直接输出 JSON 对象。`;
 
 export const DIMENSION_PROMPTS: Record<DimensionId, string> = {
-  // M2.5.3 · 融合视觉层级 + 信息分组 的合并维度 · Chris UI 展示为「页面布局」
+  // M2.5.8 · 「页面布局」 · 视觉层级 + 信息分组 · v2.5.6 基线 · 只挖掉 WCAG 越界
   'page-layout': `你是资深 B端 SaaS 设计师 · 专门审 UI 页面布局(融合视觉层级 + 信息分组)。
 分析这张设计稿的页面布局问题 · 覆盖两大维度:
 
 ## 视觉层级
-- 主次信息对比强度(WCAG 2.1 建议正文对比度 ≥ 4.5:1 · 强调元素与背景 ≥ 3:1)
+- 主次信息视觉权重差(字号 / 字重 / 密度差异 · 不判具体色值和对比度数值)
 - 视线动线合理性(自上而下 · 自左而右 · 大到小 · 关键信息优先)
 - 强调元素滥用(单页面视觉焦点 ≤ 1 个 · Von Restorff 隔离效应)
 - 大小间距一致性(Prägnanz 简洁性 · 尺寸/字号/间距按可插值 scale)
@@ -35,7 +35,9 @@ export const DIMENSION_PROMPTS: Record<DimensionId, string> = {
 - 空态 / loading / 满数据结构一致性
 - 反例(不相关信息混合 · 相关信息拆散 · 强分组)
 
-优先引用 English 定律 keyword 到 principle 字段。
+**严禁跨界**(视为其他维度职责 · 不输出 finding):对比度数值(WCAG)/ 色彩搭配 / 触控目标尺寸 / 文案表达 / 多语言 / 组件规范 / Design Token
+
+优先引用 English 定律 keyword 到 principle 字段 · **禁用 WCAG**。
 
 ${BASE_PROMPT_STRUCTURE}`,
 

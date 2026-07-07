@@ -100,7 +100,8 @@ interface StreamResult {
   hitStages: { context: boolean; analyzing: boolean; synthesizing: boolean };
 }
 
-// stream=true 消费 ARK SSE · 同步返回 async generator 让上层实时 emit stage_progress
+// 流式消费 ARK SSE · 有 keep-alive 流量 · 避免 Vercel/undici idle timeout 断连
+// 累积 content chunks 直到 [DONE] · 返回全部 content
 async function* streamArk(args: {
   apiKey: string;
   baseURL: string;
@@ -191,7 +192,6 @@ async function* streamArk(args: {
       if (done) break;
       buffer += decoder.decode(value, { stream: true });
 
-      // SSE lines separated by \n\n
       let idx: number;
       while ((idx = buffer.indexOf('\n\n')) !== -1) {
         const rawEvent = buffer.slice(0, idx);
@@ -227,7 +227,7 @@ async function* streamArk(args: {
         }
       }
     }
-    // Stream ended without [DONE] · fallback treat as done
+    // Stream ended without [DONE]
     yield { kind: 'done', content };
   } catch (e) {
     yield {
@@ -271,13 +271,11 @@ export class VercelAISDKProvider implements ModelProvider {
 
       for await (const chunk of stream) {
         if (chunk.kind === 'reasoning') {
-          // 首个 reasoning chunk 到达 → 切 analyzing 阶段
           if (!stageAnalyzingEmitted) {
             stageAnalyzingEmitted = true;
             yield { type: 'stage_progress', dimension, stage: 'analyzing' };
           }
         } else if (chunk.kind === 'content') {
-          // 首个 content chunk 到达 → 切 synthesizing 阶段
           if (!stageSynthesizingEmitted) {
             stageSynthesizingEmitted = true;
             yield { type: 'stage_progress', dimension, stage: 'synthesizing' };
@@ -307,7 +305,7 @@ export class VercelAISDKProvider implements ModelProvider {
       return;
     }
 
-    // 兜底:如果没走到 synthesizing 但有 content(可能 model 没走 reasoning)
+    // 兜底:content 有但没走过 synthesizing
     if (content && !stageSynthesizingEmitted) {
       yield { type: 'stage_progress', dimension, stage: 'synthesizing' };
     }

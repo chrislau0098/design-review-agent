@@ -5,7 +5,18 @@ Conventional Commits: `feat:` / `fix:` / `chore:` / `docs:` / `refactor:` / `tes
 
 ## [Unreleased]
 
-## [v0.2.7] · 2026-07-07 · M2.5.7 · #FCFCFC 灰底 · 卡片去描边阴影 · 12px 圆角
+## [v0.2.8] · 2026-07-07 · M2.5.8 · 修 accessibility 越界
+
+### Fixed (Backend)
+- `page-layout` prompt 剔除 WCAG 4.5:1 对比度数值检查 · 加「严禁跨界」明确列表(对比度 / 色彩 / 触控目标 / 文案 / 多语言 / 组件规范 = 其他维度职责 · 不输出 finding)
+- `principle` 字段禁用 WCAG · 避免 Doubao 输出可访问性相关 finding
+- Prod 实测 4 findings 分布合理(Law of Proximity / Prägnanz / Serial Position / Law of Similarity)· **0 处 a11y 越界**
+
+### Process
+- 中途尝试 non-streaming 简化(触发 sin1 → cn-beijing 90s idle timeout · fetch failed)· 回归 streaming 路径
+- Prompt 精简版触发 Doubao 空输出(scope 太严让 model 谨慎)· 最终选 v2.5.6 基线 + surgical 挖掉 WCAG · balance 稳定输出 vs scope 边界
+
+
 
 ### Changed
 - **背景 → #FCFCFC**(`0.985 0 0` OKLCH · Chris 精准)· 更浅灰底 · 视觉更轻
