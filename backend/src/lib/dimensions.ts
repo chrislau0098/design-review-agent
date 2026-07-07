@@ -4,7 +4,7 @@ import type { DimensionId } from './types';
 // principle 提示优先英文定律名 · 便于系统链接映射(Fitts / Gestalt / WCAG / Nielsen 等)
 
 const BASE_PROMPT_STRUCTURE = `严格输出 JSON · findings 数组 · 每条 finding 字段:
-- severity: "P0" 阻塞级(用户流程完全断) / "P1" 重点关注(可用但明显打折) / "P2" 可优化(改良建议)
+- severity: "P0" 重点关注(核心问题 · 建议优先处理) / "P1" 需优化(明显问题 · 应改良) / "P2" 可优化(细节改良 · nice-to-have)
 - description: 一句话描述问题现象 · 客观陈述 · 不用「建议」「应该」开头
 - suggestion: 具体改法 · 可执行的 · 尽量给数值 / 样式 / 位置 / 顺序
 - principle: (可选)引用的一句设计原则 · **优先使用英文定律 keyword**(便于自动映射到官方文档):

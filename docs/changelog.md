@@ -5,6 +5,43 @@ Conventional Commits: `feat:` / `fix:` / `chore:` / `docs:` / `refactor:` / `tes
 
 ## [Unreleased]
 
+## [v0.2.6] · 2026-07-07 · M2.5.6 · 灰底白卡 + 品牌蓝 #1456F0 · P0 黄 / P1 蓝
+
+### Changed (色彩系统 · 参考 Chris 提供 dashboard 配图)
+- **灰底白卡分层**:
+  - `--background` 近白(0.99)→ **浅灰**(0.955 chroma 0.006 · 约 F1F1F3)
+  - `--card` 保持近白(0.995)· 与 bg 对比明显
+  - `--border` 稍加深(0.92)· 灰底上仍可见
+- **主色 = Chris 品牌蓝 #1456F0**:
+  - `--primary`: `0.52 0.22 262`(OKLCH 对应 #1456F0)
+  - `--ring` / `--progress` 同 hue · 视觉一致
+  - Primary 用于:开始评审 CTA · Radio 选中 border · Progress bar · Focus ring
+- **Severity 颠倒(语义 + 色彩)**:
+  - P0 = **重点关注**(黄 `0.72 0.15 85`) · 最高优先级
+  - P1 = **需优化**(蓝 `0.55 0.20 262`) · 中等 · 与 primary 同 hue 但差 L/C 差异化
+  - P2 = **可优化**(灰 `0.55 0.02 250`) · 保持
+  - Badge bg opacity 15-18% → **20/20/18%** · 底色明显可见
+- `--destructive` 独立红(0.58 0.14 25)· error alert 用 · 不受 severity 变化影响
+
+### Changed (交互)
+- **Radio 卡片选中**去 shadow ring · 只用 `border-[1.5px] border-primary bg-primary/[0.04]` · 蓝色 border 实心表达选中 · 无外层灰色 ring
+- **Header back button** 拆成 icon-only(w-6 h-6 独立按钮)+ 独立 `<div>评审结果</div>` 标题 · 热区只在左侧箭头 · 标题不再是可点击区域
+- Cards 加极轻 shadow(`0_1px_3px/0.04, 0_1px_2px/0.02`) · Findings 卡 + CoT 卡 视觉略浮起 · 匹配灰底白卡 elevation
+
+### Changed (Backend)
+- `BASE_PROMPT_STRUCTURE` severity 语义描述:
+  - P0 `阻塞级(用户流程完全断)` → `重点关注(核心问题 · 建议优先处理)`
+  - P1 `重点关注(可用但明显打折)` → `需优化(明显问题 · 应改良)`
+  - P2 `可优化(改良建议)` → `可优化(细节改良 · nice-to-have)`
+- Prod 实测(page-layout dimension · 7 findings):
+  - P0×1(WCAG 对比度不达)/ P1×5(层级/焦点/边界/间距/一致性)/ P2×1(锚点)· 语义匹配
+  - principle 7/7 全部英文定律 keyword · URL 100% 可点
+
+### Process
+- Chris 明确 Planner + 架构师定位 · 6 类改动派 Coder-plugin sub-agent(Sonnet)执行
+- Planner 详细指定 OKLCH 色值 + 具体 className 差异 + impeccable 合规审查点
+- Sub-agent 返回 diff + typecheck + build 状态 · Planner review + prod deploy + commit
+
 ## [v0.2.5] · 2026-07-07 · M2.5.5 · 色彩系统 + 评审结果 header
 
 ### Changed

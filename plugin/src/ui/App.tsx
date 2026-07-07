@@ -343,13 +343,16 @@ export function App() {
     <div className="flex flex-col h-full relative overflow-hidden">
       <header className="px-4 py-3 flex items-center gap-2 border-b border-border/60 bg-background shrink-0">
         {state.phase === 'done' || state.phase === 'viewing-history' ? (
-          <button
-            className="inline-flex items-center gap-1 h-6 px-1.5 -ml-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors duration-150 ease-out-quart flex-1"
-            onClick={handleReset}
-          >
-            <ChevronLeft className="w-3.5 h-3.5" />
-            <span className="text-[13px] font-semibold">评审结果</span>
-          </button>
+          <>
+            <button
+              className="inline-flex items-center justify-center w-6 h-6 -ml-1 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors duration-150 ease-out-quart"
+              onClick={handleReset}
+              title="返回"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <div className="text-[13px] font-semibold flex-1">评审结果</div>
+          </>
         ) : (
           <>
             <Sparkles className="w-3.5 h-3.5 text-foreground/70" />
@@ -403,9 +406,9 @@ export function App() {
                       <button
                         key={opt.id}
                         className={cn(
-                          'text-left rounded-lg border p-3 transition-all duration-150 ease-out-quart',
+                          'text-left rounded-lg border-[1.5px] p-3 transition-all duration-150 ease-out-quart',
                           active
-                            ? 'border-foreground bg-foreground/[0.04] shadow-[0_0_0_1.5px_oklch(var(--foreground)/0.35)]'
+                            ? 'border-primary bg-primary/[0.04]'
                             : 'border-border/60 bg-card hover:border-border'
                         )}
                         onClick={() => setMode(opt.id)}
@@ -442,8 +445,8 @@ export function App() {
                         key={opt.id}
                         disabled={disabled}
                         className={cn(
-                          'text-left rounded-lg border px-3 py-2.5 transition-all duration-150 ease-out-quart',
-                          active && 'border-foreground bg-foreground/[0.04] shadow-[0_0_0_1.5px_oklch(var(--foreground)/0.35)]',
+                          'text-left rounded-lg border-[1.5px] px-3 py-2.5 transition-all duration-150 ease-out-quart',
+                          active && 'border-primary bg-primary/[0.04]',
                           !active && !disabled && 'border-border/60 bg-card hover:border-border',
                           disabled && 'border-border/40 bg-muted/40 cursor-not-allowed opacity-70'
                         )}

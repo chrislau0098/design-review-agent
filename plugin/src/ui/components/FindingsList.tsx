@@ -9,10 +9,10 @@ const SEVERITY_VARIANT: Record<Severity, 'p0' | 'p1' | 'p2'> = {
   P2: 'p2',
 };
 
-// Chris 更新的文案 · P1 → 重点关注 · P2 → 可优化
+// Chris 更新的文案 · severity 语义颠倒 · P0 重点关注 / P1 需优化 / P2 可优化
 const SEVERITY_LABEL: Record<Severity, string> = {
-  P0: 'P0 阻塞',
-  P1: 'P1 重点关注',
+  P0: 'P0 重点关注',
+  P1: 'P1 需优化',
   P2: 'P2 可优化',
 };
 
@@ -51,7 +51,7 @@ export function FindingsList({
           return (
             <div
               key={i}
-              className="rounded-lg bg-card border border-border/60 overflow-hidden transition-colors duration-150 ease-out-quart hover:border-border"
+              className="rounded-lg bg-card border border-border/60 shadow-[0_1px_3px_oklch(0_0_0/0.04),_0_1px_2px_oklch(0_0_0/0.02)] overflow-hidden transition-colors duration-150 ease-out-quart hover:border-border"
             >
               {/* header row */}
               <div className="flex items-center gap-2 px-4 pt-3 pb-2.5">

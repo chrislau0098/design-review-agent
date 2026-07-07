@@ -43,7 +43,7 @@ export function CoTCard({ currentStage, stageStartTimes, now, totalElapsedSec }:
   }, [currentIdx, currentStage, stageStartTimes, now]);
 
   return (
-    <div className="space-y-4 rounded-lg bg-card border border-border/60 p-4">
+    <div className="space-y-4 rounded-lg bg-card border border-border/60 shadow-[0_1px_3px_oklch(0_0_0/0.04),_0_1px_2px_oklch(0_0_0/0.02)] p-4">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5">
           <Sparkles className="w-3.5 h-3.5 text-foreground/70" />

@@ -6,37 +6,37 @@
   :root {
     /* OKLCH · tinted neutrals with subtle cool undertone(冷调偏中性)
        Never pure #fff or #000 · low chroma at extremes to avoid AI-look. */
-    --background: 0.99 0.003 250;
+    --background: 0.955 0.006 250;   /* 浅灰 · 与白卡对比 · 约 F1F1F3 */
     --foreground: 0.22 0.015 250;
 
-    --card: 0.995 0.002 250;
+    --card: 0.995 0.002 250;         /* 近白 */
     --card-foreground: 0.22 0.015 250;
 
-    --muted: 0.965 0.005 250;
+    --muted: 0.955 0.006 250;        /* 与 bg 同 · consistent */
     --muted-foreground: 0.55 0.015 250;
 
-    --border: 0.93 0.006 250;
-    --input: 0.93 0.006 250;
+    --border: 0.92 0.008 250;        /* 稍加深 · 灰底上边框仍可见 */
+    --input: 0.92 0.008 250;
 
-    --primary: 0.28 0.015 250;
-    --primary-foreground: 0.985 0.003 250;
+    --primary: 0.52 0.22 262;        /* Chris 品牌蓝 #1456F0 */
+    --primary-foreground: 0.995 0.002 250;
 
-    --secondary: 0.965 0.005 250;
+    --secondary: 0.94 0.008 250;
     --secondary-foreground: 0.28 0.015 250;
 
-    --accent: 0.955 0.008 250;
-    --accent-foreground: 0.28 0.015 250;
+    --accent: 0.94 0.01 262;
+    --accent-foreground: 0.28 0.015 262;
 
-    --ring: 0.55 0.02 250;
+    --ring: 0.52 0.22 262;           /* focus ring 蓝 */
 
-    --progress: 0.55 0.16 245;  /* vibrant blue OKLCH · 明快 · 不刺眼 */
+    --progress: 0.52 0.22 262;       /* progress bar 与 primary 同蓝 · 视觉一致 */
 
-    /* Severity indicators · 底色明显可见(非 dot-only)
-       P0 蓝(阻塞级信息)· P1 黄(提高 chroma)· P2 灰(中性冷调) */
-    --severity-p0: 0.52 0.16 250;  /* 蓝 · 阻塞级信息 · 不刺眼 */
-    --severity-p1: 0.72 0.15 85;   /* 黄 · 提高 chroma · 明显 */
-    --severity-p2: 0.55 0.02 250;  /* 灰 · slight cool tint */
-    --destructive: 0.58 0.14 25;   /* 红 · 专门给 error alerts 用 · 与 P0 解耦 */
+    /* Severity 颠倒 · P0 黄 / P1 蓝 / P2 灰 · Chris 定 */
+    --severity-p0: 0.72 0.15 85;     /* 黄 · 重点关注 top-priority */
+    --severity-p1: 0.55 0.20 262;    /* 蓝 · 需优化 · 与 primary 同 hue 但差异化 L/C */
+    --severity-p2: 0.55 0.02 250;    /* 灰 · 可优化 · 保持 */
+
+    --destructive: 0.58 0.14 25;     /* 红 · 保留给 error alert · 与 severity 解耦 */
 
     --radius: 0.5rem;
   }
