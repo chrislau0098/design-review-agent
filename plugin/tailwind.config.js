@@ -4,40 +4,42 @@ export default {
   theme: {
     extend: {
       colors: {
-        border: 'oklch(var(--border))',
-        input: 'oklch(var(--input))',
-        ring: 'oklch(var(--ring))',
-        background: 'oklch(var(--background))',
-        foreground: 'oklch(var(--foreground))',
+        // v0.2.9 · 全部加 <alpha-value> 占位符 · 让 bg-x/20 等 opacity modifier 生效
+        // 之前 bg-severity-p0/20 不显示底色 · 就是缺这个占位符
+        border: 'oklch(var(--border) / <alpha-value>)',
+        input: 'oklch(var(--input) / <alpha-value>)',
+        ring: 'oklch(var(--ring) / <alpha-value>)',
+        background: 'oklch(var(--background) / <alpha-value>)',
+        foreground: 'oklch(var(--foreground) / <alpha-value>)',
         primary: {
-          DEFAULT: 'oklch(var(--primary))',
-          foreground: 'oklch(var(--primary-foreground))',
+          DEFAULT: 'oklch(var(--primary) / <alpha-value>)',
+          foreground: 'oklch(var(--primary-foreground) / <alpha-value>)',
         },
         secondary: {
-          DEFAULT: 'oklch(var(--secondary))',
-          foreground: 'oklch(var(--secondary-foreground))',
+          DEFAULT: 'oklch(var(--secondary) / <alpha-value>)',
+          foreground: 'oklch(var(--secondary-foreground) / <alpha-value>)',
         },
         muted: {
-          DEFAULT: 'oklch(var(--muted))',
-          foreground: 'oklch(var(--muted-foreground))',
+          DEFAULT: 'oklch(var(--muted) / <alpha-value>)',
+          foreground: 'oklch(var(--muted-foreground) / <alpha-value>)',
         },
         accent: {
-          DEFAULT: 'oklch(var(--accent))',
-          foreground: 'oklch(var(--accent-foreground))',
+          DEFAULT: 'oklch(var(--accent) / <alpha-value>)',
+          foreground: 'oklch(var(--accent-foreground) / <alpha-value>)',
         },
         card: {
-          DEFAULT: 'oklch(var(--card))',
-          foreground: 'oklch(var(--card-foreground))',
+          DEFAULT: 'oklch(var(--card) / <alpha-value>)',
+          foreground: 'oklch(var(--card-foreground) / <alpha-value>)',
         },
-        progress: 'oklch(var(--progress))',
+        progress: 'oklch(var(--progress) / <alpha-value>)',
         severity: {
-          p0: 'oklch(var(--severity-p0))',
-          p1: 'oklch(var(--severity-p1))',
-          p2: 'oklch(var(--severity-p2))',
+          p0: 'oklch(var(--severity-p0) / <alpha-value>)',
+          p1: 'oklch(var(--severity-p1) / <alpha-value>)',
+          p2: 'oklch(var(--severity-p2) / <alpha-value>)',
         },
         destructive: {
-          DEFAULT: 'oklch(var(--destructive))',
-          foreground: 'oklch(0.99 0.003 250)',
+          DEFAULT: 'oklch(var(--destructive) / <alpha-value>)',
+          foreground: 'oklch(0.99 0.003 250 / <alpha-value>)',
         },
       },
       borderRadius: {

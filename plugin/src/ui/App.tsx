@@ -33,7 +33,6 @@ type FigmaMessage =
 type UIMessage =
   | { type: 'REQUEST_EXPORT' }
   | { type: 'INSPECT_NODES'; nodeIds: string[]; fallbackHints: string[] }
-  | { type: 'OPEN_URL'; url: string }
   | { type: 'LOAD_HISTORY' }
   | { type: 'SAVE_HISTORY'; entries: HistoryEntry[] }
   | { type: 'CLOSE' };
@@ -318,10 +317,6 @@ export function App() {
     postToFigma({ type: 'INSPECT_NODES', nodeIds, fallbackHints: hints });
   };
 
-  const handleOpenPrincipleUrl = (url: string) => {
-    postToFigma({ type: 'OPEN_URL', url });
-  };
-
   const handleSelectHistory = (entry: HistoryEntry) => {
     setState({ phase: 'viewing-history', entry });
     setHistoryOpen(false);
@@ -377,10 +372,11 @@ export function App() {
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-4">
           {state.phase === 'no-selection' && (
-            <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+            // v0.2.9 · min-h 让 justify-center 实际生效 · UI 高 720 · 减 header + p-4 padding ≈ 620
+            <div className="flex flex-col items-center justify-center gap-3 min-h-[560px] text-center">
               <MousePointerClick className="w-6 h-6 text-muted-foreground/60" strokeWidth={1.5} />
               <div className="text-[13px] text-muted-foreground max-w-[260px] leading-[1.55]">
-                在 Figma 里选中一个 Frame 或 Component,开始 AI 视觉层级评审
+                在 Figma 里选中一个 Frame 或 Component,开始 AI 设计评审
               </div>
             </div>
           )}
@@ -490,7 +486,6 @@ export function App() {
                   findings={state.findings}
                   dimensionLabel={activeDimensionLabel}
                   onInspect={handleInspect}
-                  onOpenPrincipleUrl={handleOpenPrincipleUrl}
                 />
               )}
             </>
@@ -510,7 +505,6 @@ export function App() {
                 findings={state.findings}
                 dimensionLabel={activeDimensionLabel}
                 onInspect={handleInspect}
-                onOpenPrincipleUrl={handleOpenPrincipleUrl}
               />
             </>
           )}
@@ -530,7 +524,6 @@ export function App() {
                 findings={state.entry.findings}
                 dimensionLabel={activeDimensionLabel}
                 onInspect={handleInspect}
-                onOpenPrincipleUrl={handleOpenPrincipleUrl}
               />
             </>
           )}

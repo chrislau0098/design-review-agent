@@ -20,7 +20,8 @@ interface FindingsListProps {
   findings: Finding[];
   dimensionLabel: string;
   onInspect: (finding: Finding) => void;
-  onOpenPrincipleUrl: (url: string) => void;
+  // v0.2.9 · onOpenPrincipleUrl 移除 · 改用 <a target="_blank"> · Figma iframe 自动打开系统浏览器
+  // (postMessage → figma.openExternal 有"必须 sync 于用户点击"的隐藏限制 · 不 reliable)
 }
 
 // 正文 15-16px · 建议与问题正文左对齐(移除 padding block)· 用 small label 而非背景块区分
@@ -28,7 +29,6 @@ export function FindingsList({
   findings,
   dimensionLabel,
   onInspect,
-  onOpenPrincipleUrl,
 }: FindingsListProps) {
   if (findings.length === 0) {
     return (
@@ -99,13 +99,15 @@ export function FindingsList({
                       {principleLink && (
                         <>
                           {' '}
-                          <button
+                          <a
+                            href={principleLink.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className="not-italic inline-flex items-center gap-0.5 text-foreground/75 hover:text-foreground underline decoration-dotted underline-offset-2 transition-colors duration-150 ease-out-quart"
-                            onClick={() => onOpenPrincipleUrl(principleLink.url)}
                           >
                             {principleLink.label}
                             <ArrowUpRight className="w-2.5 h-2.5" />
-                          </button>
+                          </a>
                         </>
                       )}
                     </div>

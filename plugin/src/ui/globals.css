@@ -6,7 +6,7 @@
   :root {
     /* OKLCH · tinted neutrals with subtle cool undertone(冷调偏中性)
        Never pure #fff or #000 · low chroma at extremes to avoid AI-look. */
-    --background: 0.985 0 0;   /* #FCFCFC · 极浅灰几近白 · Chris 精准 */
+    --background: 0.98 0 0;   /* #FAFAFA · 灰底更明显 · v0.2.9 */
     --foreground: 0.22 0.015 250;
 
     --card: 1 0 0;   /* pure white · 明确对比灰底 · 参考图 3 白卡效果 */
