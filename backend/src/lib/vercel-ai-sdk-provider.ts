@@ -122,6 +122,10 @@ async function* streamArk(args: {
   const body = {
     model: modelId,
     stream: true,
+    // v2.5.10 · 加 temperature 0.3 · structured JSON 输出的稳定值
+    // 之前不设 → Doubao 走 default 1.0 · 简单 frame 同一次评审结论翻转(有时 5 条 finding 有时 [])
+    // 0.3 保留 catch 不同角度的创意空间 · 但大幅降低"结论概率翻转"
+    temperature: 0.3,
     response_format: {
       type: 'json_schema',
       json_schema: {
